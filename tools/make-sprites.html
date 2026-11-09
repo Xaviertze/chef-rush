@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Chef Rush - sprite sheet maker</title>
+    <style>
+        body { background: #2b1a0c; color: #fff6e0; font-family: sans-serif; padding: 20px; }
+        canvas { image-rendering: pixelated; width: 1152px; background:
+            repeating-conic-gradient(#555 0 25%, #777 0 50%) 0 0 / 16px 16px; }
+        a { color: #f7c531; }
+    </style>
+</head>
+<body>
+    <h1>Sprite sheet maker</h1>
+    <p>Draws every sprite on one canvas (each cell is 32x32). Click the link to save it as
+       <code>public/img/sprites.png</code>. You can also replace that PNG with a downloaded sheet,
+       as long as the cells stay in the same places (see <code>public/js/sprites.js</code>).</p>
+    <canvas id="sheet" width="384" height="96"></canvas>
+    <p><a id="save" download="sprites.png" href="#">Download sprites.png</a></p>
+
+<script>
+// Lecture links: 6.1/6.2 (canvas rect, arc, paths, fill/stroke), 6.3 (a sprite sheet is one image of many sprites)
+const CELL = 32;
+const canvas = document.getElementById("sheet");
+const c = canvas.getContext("2d");
+const OUT = "#1b1209";
+
+// ---------- helpers ----------
+const rect = (x, y, w, h, fill) => { c.fillStyle = fill; c.fillRect(x, y, w, h); };
+const box = (x, y, w, h, fill) => { rect(x - 1, y - 1, w + 2, h + 2, OUT); rect(x, y, w, h, fill); };
+const ellipse = function (x, y, rx, ry, fill, outline = true) {
+    c.beginPath();
+    c.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI);
+    c.fillStyle = fill;
+    c.fill();
+    if (outline) { c.lineWidth = 2; c.strokeStyle = OUT; c.stroke(); }
+};
+const circle = (x, y, r, fill, outline = true) => ellipse(x, y, r, r, fill, outline);
+const cell = function (col, row, draw) {
+    c.save();
+    c.translate(col * CELL, row * CELL);
+    draw();
+    c.restore();
+};
+
+// ---------- row 0: items ----------
+const items = {
+    lettuce_raw() {
+        circle(16, 17, 11, "#58c43a");
+        c.lineWidth = 2; c.strokeStyle = "#2f8a22";
+        c.beginPath(); c.moveTo(16, 8); c.lineTo(16, 26); c.moveTo(16, 14); c.lineTo(10, 10);
+        c.moveTo(16, 14); c.lineTo(22, 10); c.moveTo(16, 20); c.lineTo(9, 17); c.moveTo(16, 20); c.lineTo(23, 17); c.stroke();
+        rect(10, 11, 3, 2, "#a6ef7a");
+    },
+    lettuce_chopped() {
+        ellipse(10, 19, 6, 3, "#58c43a"); ellipse(20, 14, 6, 3, "#6ad14a");
+        ellipse(22, 22, 6, 3, "#4bb032"); ellipse(13, 25, 5, 3, "#6ad14a"); ellipse(15, 13, 4, 3, "#4bb032");
+    },
+    tomato_raw() {
+        circle(16, 18, 10, "#e5402a");
+        rect(11, 13, 4, 3, "#ff8a6b");
+        rect(14, 6, 4, 4, OUT); rect(15, 7, 2, 3, "#3a9a2a");
+        rect(10, 8, 12, 2, OUT); rect(11, 8, 10, 1, "#4bb032");
+    },
+    tomato_chopped() {
+        circle(11, 19, 7, "#e5402a"); circle(11, 19, 4, "#ff8a6b", false);
+        rect(10, 17, 1, 1, "#fff3c4"); rect(12, 20, 1, 1, "#fff3c4");
+        circle(21, 14, 7, "#e5402a"); circle(21, 14, 4, "#ff8a6b", false);
+        rect(20, 12, 1, 1, "#fff3c4"); rect(22, 15, 1, 1, "#fff3c4");
+    },
+    onion_raw() {
+        ellipse(16, 19, 10, 9, "#c98bd6");
+        c.lineWidth = 1.5; c.strokeStyle = "#8e4fa0";
+        c.beginPath(); c.moveTo(16, 11); c.lineTo(16, 27); c.moveTo(11, 13); c.lineTo(10, 25); c.moveTo(21, 13); c.lineTo(22, 25); c.stroke();
+        rect(14, 6, 4, 5, OUT); rect(15, 6, 2, 4, "#c4a36a");
+        rect(11, 15, 3, 3, "#ecc6f2");
+    },
+    onion_chopped() {
+        [[10, 18], [20, 14], [21, 23], [12, 25]].forEach(function (pt) {
+            c.beginPath(); c.arc(pt[0], pt[1], 5, 0, 2 * Math.PI); c.fillStyle = "#f3e6f5"; c.fill();
+            c.lineWidth = 2; c.strokeStyle = "#8e4fa0"; c.stroke();
+            c.beginPath(); c.arc(pt[0], pt[1], 2.5, 0, 2 * Math.PI); c.lineWidth = 1; c.stroke();
+        });
+    },
+    carrot_raw() {
+        c.beginPath(); c.moveTo(7, 25); c.lineTo(22, 8); c.lineTo(26, 12); c.closePath();
+        c.fillStyle = "#f08a24"; c.fill(); c.lineWidth = 2; c.strokeStyle = OUT; c.stroke();
+        rect(13, 17, 3, 1, "#b85d0f"); rect(17, 13, 3, 1, "#b85d0f");
+        c.beginPath(); c.moveTo(23, 9); c.lineTo(27, 2); c.moveTo(24, 10); c.lineTo(30, 6); c.moveTo(24, 10); c.lineTo(29, 11);
+        c.lineWidth = 2.5; c.strokeStyle = "#3a9a2a"; c.stroke();
+    },
+    carrot_chopped() {
+        [[10, 19], [20, 14], [21, 23], [12, 26]].forEach(function (pt) {
+            ellipse(pt[0], pt[1], 5, 4, "#f08a24");
+            c.beginPath(); c.arc(pt[0], pt[1], 1.5, 0, 2 * Math.PI); c.fillStyle = "#ffc27a"; c.fill();
+        });
+    },
+    plate() {
+        ellipse(16, 18, 14, 10, "#f4f4f4");
+        ellipse(16, 18, 9, 6, "#dedede", false);
+    },
+    star() {
+        c.beginPath();
+        for (let i = 0; i < 10; i++) {
+            const r = i % 2 ? 6 : 13, a = -Math.PI / 2 + i * Math.PI / 5;
+            c.lineTo(16 + r * Math.cos(a), 16 + r * Math.sin(a));
+        }
+        c.closePath(); c.fillStyle = "#ffd23f"; c.fill(); c.lineWidth = 2; c.strokeStyle = OUT; c.stroke();
+    },
+    smoke() {
+        circle(11, 20, 6, "#9a9a9a", false); circle(18, 14, 8, "#b9b9b9", false); circle(23, 21, 5, "#8a8a8a", false);
+    },
+    steam() {
+        c.lineWidth = 3; c.strokeStyle = "rgba(255,255,255,0.9)";
+        [9, 16, 23].forEach(function (x) {
+            c.beginPath(); c.moveTo(x, 28); c.quadraticCurveTo(x - 5, 21, x, 15); c.quadraticCurveTo(x + 5, 9, x, 3); c.stroke();
+        });
+    }
+};
+
+// ---------- rows 1 and 2: chef animation sequences ----------
+// frames 0-3 = walking, frames 4-5 = chopping (arms up / arms down), frame 6 = dizzy
+const chef = function (frame, shirt, dark) {
+    const walk = frame <= 3 ? frame : 0;
+    const leftLeg = walk === 1 ? -2 : 0, rightLeg = walk === 3 ? -2 : 0;
+    box(11, 25 + leftLeg, 4, 5 - leftLeg, "#2b2b2b");
+    box(17, 25 + rightLeg, 4, 5 - rightLeg, "#2b2b2b");
+
+    box(8, 15, 16, 11, shirt);                 // body
+    rect(12, 17, 8, 9, "#ffffff");            // apron
+    rect(12, 17, 8, 1, dark);
+
+    // arms
+    if (frame === 4) { box(5, 11, 4, 6, shirt); box(23, 11, 4, 6, shirt); rect(24, 6, 2, 6, "#cfcfcf"); }
+    else if (frame === 5) { box(5, 19, 4, 5, shirt); box(23, 19, 4, 5, shirt); rect(24, 22, 6, 2, "#cfcfcf"); }
+    else { const swing = walk === 1 ? 1 : walk === 3 ? -1 : 0; box(5, 17 + swing, 4, 6, shirt); box(23, 17 - swing, 4, 6, shirt); }
+
+    circle(16, 11, 6, "#f3c38e");             // head
+    // hat
+    circle(12, 3, 3, "#ffffff"); circle(16, 2, 3.5, "#ffffff"); circle(20, 3, 3, "#ffffff");
+    box(11, 4, 10, 4, "#ffffff");
+    rect(11, 3, 10, 2, "#ffffff");
+
+    if (frame === 6) {                         // dizzy swirl eyes
+        c.lineWidth = 1; c.strokeStyle = OUT;
+        c.beginPath(); c.arc(13.5, 11, 1.6, 0, 5); c.stroke();
+        c.beginPath(); c.arc(18.5, 11, 1.6, 0, 5); c.stroke();
+    }
+};
+
+Object.keys(items).forEach((name, i) => cell(i, 0, items[name]));
+const shirts = [["#e8463a", "#a82a20"], ["#3a6cf0", "#2445a8"]];
+shirts.forEach(function (s, row) {
+    for (let f = 0; f < 7; f++) cell(f, row + 1, () => chef(f, s[0], s[1]));
+});
+
+document.getElementById("save").href = canvas.toDataURL("image/png");
+</script>
+</body>
+</html>

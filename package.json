@@ -1,0 +1,15 @@
+{
+  "name": "chef-rush",
+  "version": "1.0.0",
+  "description": "Chef Rush - 1v1 real-time cooking game over WebSocket (COMP4021 group project)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "jquery": "^3.7.1",
+    "socket.io": "^4.7.5"
+  }
+}
