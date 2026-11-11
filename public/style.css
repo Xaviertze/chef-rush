@@ -219,8 +219,14 @@ body[data-page="game"] .page { max-width: 1400px; padding: 8px 12px; }
 .hud-center { display: flex; align-items: center; justify-content: center; gap: 18px; background: var(--ink); padding: 6px 14px; }
 .clock { font-family: var(--pixel); font-size: 1.5rem; color: var(--cream); }
 .clock.low { color: #ff6b5b; animation: blink 0.8s steps(2) infinite; }
-.cheat-btn { font-size: 0.55rem; padding: 6px 8px; background: #e9d7f0; box-shadow: 3px 3px 0 #000; }
-.cheat-btn.on { background: #c13ad6; color: #fff; }
+/* Skill buttons: the dark part (--fill, set by hud.js) shows time used up while on, or time left to recharge */
+.skills { display: flex; gap: 10px; }
+.skill-btn { --fill: 0%; --btn-bg: #e9d7f0; min-width: 132px; font-size: 0.55rem; padding: 6px 8px; box-shadow: 3px 3px 0 #000;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.28) var(--fill), transparent var(--fill)), var(--btn-bg); }
+.sprint-btn { --btn-bg: #cdeefb; }
+.cheat-btn.on { --btn-bg: #c13ad6; color: #fff; }
+.sprint-btn.on { --btn-bg: #1f9fd1; color: #fff; }
+.skill-btn.cooling { color: #5a5a5a; }
 
 /* Order cards: one wide card per order with big dish + ingredient icons */
 .orders { display: flex; flex-direction: column; gap: 6px; }
@@ -297,6 +303,35 @@ body[data-page="game"] .page { max-width: 1400px; padding: 8px 12px; }
 
 /* ---------- Narrower screens ---------- */
 /* Orders go above the kitchen (side by side), kitchen uses the full width */
+
+/* ---------- Chef Wars: hearts, overtime, sound button ---------- */
+.mute-btn { margin-left: auto; margin-right: 12px; font-size: 1.1rem; padding: 4px 8px; background: var(--cream); box-shadow: 3px 3px 0 #000; }
+.subtitle { font-family: var(--pixel); color: var(--orange); font-size: 0.9rem; margin: 8px 0 0; letter-spacing: 2px; }
+.cost { font-family: var(--pixel); font-size: 0.6rem; color: var(--red); white-space: nowrap; }
+.order-name b.cost { color: var(--red); }
+.order-name b.sudden-tag { color: #fff; background: var(--red); padding: 2px 4px; animation: blink 0.8s steps(2) infinite; }
+.order.sudden { border-color: var(--red); box-shadow: 0 0 0 3px var(--gold); }
+
+/* Hearts row above the order list (own row in the HUD panel) */
+.hearts { order: 2; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;
+    background: #fff; border: 3px solid var(--ink); padding: 4px; animation-duration: 0.45s; }
+.hearts img { width: 21px; height: 21px; }
+
+/* Waiting room: starting hearts */
+.hearts-pick { margin: 0 0 16px; }
+.hearts-pick h3 { margin: 0 0 8px; }
+.hearts-options { display: flex; justify-content: center; gap: 10px; }
+.hearts-options button { min-width: 54px; font-family: var(--pixel); font-size: 0.9rem; background: #fff; }
+.hearts-options button::after { content: " ♥"; color: var(--red); }
+.hearts-options button.on { background: var(--red); color: #fff; transform: translateY(-2px); }
+.hearts-options button.on::after { color: #fff; }
+.hearts-pick .muted { font-size: 0.85rem; margin: 8px 0 0; }
+
+/* Clock and the Sudden Death Dish */
+.clock-box { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.clock.overtime { color: var(--gold); }
+.overtime-label { font-family: var(--pixel); font-size: 0.55rem; color: #fff; background: var(--red); padding: 3px 6px; animation: blink 0.8s steps(2) infinite; }
+
 @media (max-width: 1000px) {
     #page-game {
         grid-template-columns: 1fr 1fr;

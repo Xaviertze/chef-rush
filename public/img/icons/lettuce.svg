@@ -42,6 +42,12 @@
             <stop offset="0.5" stop-color="#f7c531" />
             <stop offset="1" stop-color="#c98a0a" />
         </linearGradient>
+        <radialGradient id="heart-grad" fx="35%" fy="30%">
+            <stop offset="0.1" stop-color="#ff9a9a" />
+            <stop offset="1" stop-color="#d81e2c" />
+        </radialGradient>
+        <!-- Outside the slides: clipPath keeps only the left half of a shape (used for the half heart) -->
+        <clipPath id="left-half"><rect x="0" y="0" width="32" height="64"/></clipPath>
     </defs>
 <g fill="url(#lettuce-grad)" stroke="#1b1209" stroke-width="2">
         <ellipse cx="20" cy="38" rx="13" ry="7"/><ellipse cx="42" cy="28" rx="13" ry="7"/><ellipse cx="38" cy="45" rx="12" ry="7"/></g>

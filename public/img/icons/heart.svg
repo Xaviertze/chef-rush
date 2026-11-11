@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+    <defs>
+        <linearGradient id="lettuce-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0" stop-color="#8ee05f" />
+            <stop offset="1" stop-color="#3f9f2a" />
+        </linearGradient>
+        <radialGradient id="tomato-grad" fx="35%" fy="35%">
+            <stop offset="0.1" stop-color="#ff9b7d" />
+            <stop offset="1" stop-color="#d8331f" />
+        </radialGradient>
+        <radialGradient id="onion-grad" fx="35%" fy="35%">
+            <stop offset="0.1" stop-color="#f6e2fa" />
+            <stop offset="1" stop-color="#b678c4" />
+        </radialGradient>
+        <linearGradient id="carrot-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0" stop-color="#ffb259" />
+            <stop offset="1" stop-color="#e2720f" />
+        </linearGradient>
+        <radialGradient id="bowl-grad" fx="50%" fy="30%">
+            <stop offset="0.4" stop-color="#ffffff" />
+            <stop offset="1" stop-color="#c9ced6" />
+        </radialGradient>
+        <radialGradient id="soup-grad" fx="40%" fy="40%">
+            <stop offset="0" stop-color="#ff7a52" />
+            <stop offset="1" stop-color="#c8321c" />
+        </radialGradient>
+        <radialGradient id="stew-grad" fx="40%" fy="40%">
+            <stop offset="0" stop-color="#c98a4a" />
+            <stop offset="1" stop-color="#7a4a1f" />
+        </radialGradient>
+        <linearGradient id="pot-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0" stop-color="#5b6470" />
+            <stop offset="0.45" stop-color="#9aa4b0" />
+            <stop offset="1" stop-color="#3d444d" />
+        </linearGradient>
+        <radialGradient id="coin-grad" fx="35%" fy="30%">
+            <stop offset="0.1" stop-color="#fff2a8" />
+            <stop offset="1" stop-color="#e3a514" />
+        </radialGradient>
+        <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0" stop-color="#fff2a8" />
+            <stop offset="0.5" stop-color="#f7c531" />
+            <stop offset="1" stop-color="#c98a0a" />
+        </linearGradient>
+        <radialGradient id="heart-grad" fx="35%" fy="30%">
+            <stop offset="0.1" stop-color="#ff9a9a" />
+            <stop offset="1" stop-color="#d81e2c" />
+        </radialGradient>
+        <!-- Outside the slides: clipPath keeps only the left half of a shape (used for the half heart) -->
+        <clipPath id="left-half"><rect x="0" y="0" width="32" height="64"/></clipPath>
+    </defs>
+<g id="heart"><path d="M32 56 C10 40 4 30 4 20 a14 14 0 0 1 28 -6 a14 14 0 0 1 28 6 c0 10 -6 20 -28 36 z" fill="url(#heart-grad)" stroke="#1b1209" stroke-width="3"/>
+        <ellipse cx="18" cy="20" rx="5" ry="3.5" fill="#ffffff" opacity="0.7"/></g>
+</svg>

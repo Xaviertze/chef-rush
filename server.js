@@ -1,4 +1,4 @@
-// Chef Rush server
+// Chef Wars: Showdown Battle server
 // Lecture links: 7.4 (Express static + JSON endpoints), 8.3 (fs + JSON file "database"),
 // 9.2 (express-session for sign-in, crypto module), 10.1 (Socket.IO + Express, server relays between browsers),
 // 11.1 (receiving posted JSON data with express.json)
@@ -30,9 +30,12 @@ app.use(gameSession);
 // ---------- Users stored in data/users.json ----------
 const USERS_FILE = "data/users.json";
 
+// Outside the slides: Object.create(null) makes an object with no built-in keys, so usernames
+// like "constructor" or "__proto__" are looked up as normal names instead of matching Object's own properties
 const readUsers = function () {
-    if (!fs.existsSync(USERS_FILE)) return {};
-    try { return JSON.parse(fs.readFileSync(USERS_FILE)); } catch (e) { return {}; }
+    const users = Object.create(null);
+    if (!fs.existsSync(USERS_FILE)) return users;
+    try { return Object.assign(users, JSON.parse(fs.readFileSync(USERS_FILE))); } catch (e) { return users; }
 };
 const writeUsers = function (users) {
     fs.mkdirSync("data", { recursive: true });
@@ -43,7 +46,8 @@ const hashPassword = function (password, salt) {
     return crypto.scryptSync(password, salt, 64).toString("hex");
 };
 
-const newStats = () => ({ games: 0, wins: 0, losses: 0, draws: 0, best: 0, served: 0, grabbed: 0 });
+// bestServed = most dishes served in one game (the "best score" on the dashboard)
+const newStats = () => ({ games: 0, wins: 0, losses: 0, draws: 0, bestServed: 0, served: 0, grabbed: 0, missed: 0, hits: 0 });
 
 // The same rules are checked in the browser, but the server is the one that counts
 const checkRegistration = function ({ username, name, password, confirm }) {
@@ -101,9 +105,9 @@ app.get("/check-username", (req, res) => {
     res.json({ taken: !!(username && readUsers()[username]) });
 });
 
-// Round length for the "How to play" box (GAME_TIME can change it)
+// Round and overtime length for the "How to play" box (GAME_TIME / OVERTIME can change them)
 app.get("/rules", (req, res) => {
-    res.json({ gameTime: Game.SETTINGS.gameTime });
+    res.json({ gameTime: Game.SETTINGS.gameTime, overtime: Game.SETTINGS.overtime });
 });
 
 // Called when the page loads: are we still signed in?
@@ -123,8 +127,14 @@ app.get("/ranking", (req, res) => {
         const u = users[k];
         return Object.assign({ username: u.username, name: u.name }, newStats(), u.stats);
     });
-    list.sort((a, b) => b.wins - a.wins || (b.wins / (b.games || 1)) - (a.wins / (a.games || 1)) || b.best - a.best);
+    list.sort((a, b) => b.wins - a.wins || (b.wins / (b.games || 1)) - (a.wins / (a.games || 1)) || b.bestServed - a.bestServed);
     res.json(list);
+});
+
+// A broken request (e.g. invalid JSON) gets a short JSON error instead of Express's error page with file paths.
+// Outside the slides: an Express error handler is the middleware with 4 parameters (err, req, res, next).
+app.use(function (err, req, res, next) {
+    res.status(err.status || 500).json({ status: "error", error: "Bad request." });
 });
 
 // ---------- Socket.IO ----------
@@ -167,18 +177,28 @@ const recordResults = function (game) {
         if (game.winner === -1) s.draws++;
         else if (game.winner === i) s.wins++;
         else s.losses++;
-        s.best = Math.max(s.best, p.score);
+        s.bestServed = Math.max(s.bestServed, p.served);
         s.served += p.served;
         s.grabbed += p.grabbed;
+        s.missed += p.missed;
+        s.hits += p.hits;
         u.stats = s;
     });
     writeUsers(users);
 };
 
+// The game moves forward by the real time since the last tick, so a busy computer (late timer ticks)
+// doesn't make the clock, cooking and skills run slow. Capped at 0.1 s per tick so a long pause can't
+// make chefs or throws jump through walls.
+// Outside the slides: performance.now() is a millisecond timer with sub-millisecond precision.
 const startLoop = function (game) {
+    let last = performance.now();
     game.loop = setInterval(function () {
+        const now = performance.now();
+        const dt = Math.min(0.1, (now - last) / 1000);
+        last = now;
         if (game.phase !== "countdown" && game.phase !== "playing") return;
-        const result = Game.step(game, 1 / Game.SETTINGS.tickRate);
+        const result = Game.step(game, dt);
         broadcastState(game);
         if (result === "over") {
             recordResults(game);
@@ -249,6 +269,12 @@ io.on("connection", (socket) => {
         broadcastState(game);
     });
 
+    // Waiting room: either chef picks the starting hearts (5-8); both see it and both have to press Ready again
+    socket.on("hearts", (n) => {
+        const game = socket.data.game;
+        if (game && Game.setHearts(game, socket.data.index, n)) broadcastState(game);
+    });
+
     socket.on("leave game", () => leaveGame(socket));
 
     const withGame = (fn) => function (data) {
@@ -258,7 +284,10 @@ io.on("connection", (socket) => {
     socket.on("input", withGame((g, i, data) => { try { Game.setInput(g, i, JSON.parse(data)); } catch (e) { /* ignore */ } }));
     socket.on("pick", withGame((g, i) => Game.pick(g, i)));
     socket.on("throw", withGame((g, i, data) => { try { Game.throwItem(g, i, Number(JSON.parse(data).angle)); } catch (e) { /* ignore */ } }));
-    socket.on("cheat", withGame((g, i) => Game.toggleCheat(g, i)));
+    socket.on("cheat", withGame((g, i) => Game.toggleCheat(g, i)));        // the cheat button
+    socket.on("cheat on", withGame((g, i) => Game.cheatOn(g, i)));         // key combination W S W S A D A D
+    socket.on("cheat off", withGame((g, i) => Game.cheatOff(g, i)));       // C
+    socket.on("sprint", withGame((g, i) => Game.sprint(g, i)));
 
     socket.on("disconnect", () => {
         leaveQueue(socket);
@@ -268,5 +297,5 @@ io.on("connection", (socket) => {
 
 const PORT = 8000;
 httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log("Chef Rush running at http://localhost:" + PORT);
+    console.log("Chef Wars running at http://localhost:" + PORT);
 });

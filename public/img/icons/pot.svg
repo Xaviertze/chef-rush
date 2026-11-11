@@ -42,6 +42,12 @@
             <stop offset="0.5" stop-color="#f7c531" />
             <stop offset="1" stop-color="#c98a0a" />
         </linearGradient>
+        <radialGradient id="heart-grad" fx="35%" fy="30%">
+            <stop offset="0.1" stop-color="#ff9a9a" />
+            <stop offset="1" stop-color="#d81e2c" />
+        </radialGradient>
+        <!-- Outside the slides: clipPath keeps only the left half of a shape (used for the half heart) -->
+        <clipPath id="left-half"><rect x="0" y="0" width="32" height="64"/></clipPath>
     </defs>
 <g id="pot">
         <rect x="4" y="26" width="10" height="6" rx="2" fill="#3d444d" stroke="#1b1209" stroke-width="2"/>

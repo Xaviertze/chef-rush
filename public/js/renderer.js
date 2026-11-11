@@ -198,13 +198,18 @@ const Renderer = function (canvas, config, me) {
         });
     };
 
-    // Ingredients pop in, show a ring timer, and blink before they vanish
+    // Ingredients pop in, show a ring timer, and blink before they vanish.
+    // Dropped plates never vanish (left = null), so they get no ring.
     const drawFloorItems = function (now) {
         state.floor.forEach(function (f) {
-            const age = f.life - f.left;
-            const pop = Math.min(1, age / 0.3);
+            const pop = Math.min(1, f.age / 0.3);
             const scale = pop < 1 ? 0.4 + pop * 0.75 : 1;
             const x = f.x * TS, y = f.y * TS;
+            if (f.left === null) {
+                shadow(x, y + 15, 16);
+                drawItem(f.item, x, y, 46 * scale);
+                return;
+            }
             if (f.left < 3 && Math.floor(now / 120) % 2) return;     // blinking
             ctx.globalAlpha = Math.min(1, f.left / 1.5 + 0.3);
             shadow(x, y + 15, 16);
@@ -252,8 +257,21 @@ const Renderer = function (canvas, config, me) {
             }
             shadow(px, py + 16, 16);
 
+            if ((p.sprinting || p.boosting) && p.moving) {         // sprint (blue) or serving boost (gold): speed lines
+                ctx.strokeStyle = p.sprinting ? "rgba(94, 224, 255, 0.85)" : "rgba(255, 210, 63, 0.9)";
+                ctx.lineWidth = 3;
+                [-12, 0, 12].forEach(function (off, n) {
+                    const len = 14 + ((Math.floor(now / 60) + n) % 3) * 6;
+                    const sx = px - p.fx * 22 - p.fy * off, sy = py - p.fy * 22 + p.fx * off;
+                    ctx.beginPath();
+                    ctx.moveTo(sx, sy);
+                    ctx.lineTo(sx - p.fx * len, sy - p.fy * len);
+                    ctx.stroke();
+                });
+            }
+
             let sequence = "walk", index = 0;
-            if (p.stun > 0) sequence = "dizzy";
+            if (p.stun > 0 || p.knockedOut) sequence = "dizzy";
             else if (p.chopping) { sequence = "chop"; index = Math.floor(now / 120); }
             else if (p.moving) index = Math.floor(now / 110);
             Sprites.drawChef(ctx, i, sequence, index, px - 26, py - 38, 52, p.fx < -0.1);

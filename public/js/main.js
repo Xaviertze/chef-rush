@@ -5,6 +5,8 @@ $(function () {
     let me = null;              // my chef index in the current game (0 or 1)
     let state = null;
     let prevPhase = null;
+    let lastCount = null;           // last countdown number shown (for the beep)
+    let recipeNames = {};           // recipe key -> "Garden Salad"
     let renderer = null;
     let imagesReady = false;
 
@@ -12,6 +14,7 @@ $(function () {
 
     Input.init("#kitchen");
     UI.loadRules();
+    Sound.init(() => !!state && (state.phase === "countdown" || state.phase === "playing"));
 
     $("#find-btn").prop("disabled", true).text("Loading...");
     Sprites.load(function () {
@@ -123,8 +126,19 @@ $(function () {
         Socket.ready(!state.ready[me]);
     });
 
+    // Waiting room: pick the starting hearts (the server checks 5-8 and un-readies both chefs)
+    $("#hearts-options").on("click", "button", function () {
+        if (!state || state.phase !== "lobby") return;
+        Socket.setHearts(Number($(this).attr("data-hearts")));
+    });
+
     $("#cheat-btn").on("click", function () {
         Socket.cheat();
+        $(this).blur();
+    });
+
+    $("#sprint-btn").on("click", function () {
+        Socket.sprint();
         $(this).blur();
     });
 
@@ -135,8 +149,28 @@ $(function () {
         $("#match-error").text(message);
     });
 
+    // Connected (again): clear an old "Lost connection" message
+    Socket.on("connect", function () {
+        if (/^Lost connection/.test($("#match-error").text())) $("#match-error").text("");
+    });
+
+    // Sessions live in the server's memory, so after a server restart the socket is refused.
+    // Show the sign-in forms again instead of a page that looks signed in but can't play.
     Socket.on("connect error", function (message) {
-        $("#match-error").text(message);
+        if (message !== "Please sign in first") {                // server down: socket.io keeps retrying by itself
+            $("#match-error").text("Lost connection to the server. Trying to reconnect...");
+            return;
+        }
+        Socket.disconnect();
+        stopGame();
+        Auth.validate().catch(() => null).then(function (user) {
+            UI.show("home");
+            if (user) { $("#match-error").text("Could not connect to the game server. Please refresh the page."); return; }
+            UI.setUser(null);
+            UI.setQueue([]);
+            UI.loadDashboard("#dashboard-home");
+            $("#signin-form .form-error").text("Your session ended (the server was restarted). Please sign in again.");
+        });
     });
 
     Socket.on("paired", function (data) {
@@ -147,13 +181,17 @@ $(function () {
         const names = me === 0 ? [myName, data.opponent] : [data.opponent, myName];
         UI.showRoom(myName, data.opponent);
         HUD.init(data.config, me, names);
+        recipeNames = {};
+        Object.keys(data.config.recipes).forEach((k) => { recipeNames[k] = data.config.recipes[k].label; });
         if (renderer) renderer.stop();
         renderer = Renderer($("#kitchen").get(0), data.config, me);
 
         Input.attach({
             input: (s) => Socket.input(s),
             pick: () => Socket.pick(),
-            cheat: () => Socket.cheat(),
+            cheatOn: () => Socket.cheatOn(),
+            cheatOff: () => Socket.cheatOff(),
+            sprint: () => Socket.sprint(),
             toWorld: (x, y) => renderer.toWorld(x, y),
             aim: (point) => renderer.setAim(point),
             canThrow: function () {
@@ -171,6 +209,7 @@ $(function () {
     });
 
     const stopGame = function () {
+        Sound.stopMusic();
         Input.setEnabled(false);
         me = null;
         state = null;
@@ -184,34 +223,87 @@ $(function () {
     });
 
     // ---------- Game events ----------
-    const COLORS = { score: "#7dff6b", expire: "#ff6b5b", hit: "#ffd23f", cheat: "#ff7bf0", burnt: "#ff6b5b" };
+    const COLORS = {
+        serve: "#7dff6b", expire: "#ff6b5b", cheathit: "#ff7bf0", hit: "#ffd23f", cheat: "#ff7bf0",
+        burnt: "#ff6b5b", sprint: "#5ee0ff", overtime: "#ffd23f", ko: "#ff3b30"
+    };
 
     const handleEvent = function (e) {
         if (e.kind === "msg") { if (e.to === me) HUD.toast(e.text); return; }
-        renderer.addPopup(e.x, e.y, e.text, COLORS[e.kind] || "#fff");
-        if (e.kind === "score") HUD.markOrder(e.to, e.order, "served");
-        if (e.kind === "expire") HUD.markOrder(e.to, e.order, "expired");
-        if (e.kind === "hit" && e.to === me) {
-            HUD.shake("#kitchen");
-            HUD.toast("BONK! You dropped everything and you're stunned");
+        const mineEvent = e.to === me;
+        if (e.text) renderer.addPopup(e.x, e.y, e.text, COLORS[e.kind] || "#fff");
+        if (e.kind === "serve") {
+            HUD.markOrder(e.to, e.order, "served");
+            if (mineEvent) { Sound.play("serve"); Sound.play("boost", 0.5); }
         }
-        if (e.kind === "cheat" && e.to === me) {
-            HUD.toast(e.on ? "Cheat ON: instant chopping & cooking, double points" : "Cheat OFF");
+        if (e.kind === "expire") {
+            HUD.markOrder(e.to, e.order, "expired");
+            if (mineEvent) { Sound.play("heart"); HUD.toast("Order missed: " + e.text); }
         }
+        if (e.kind === "cheathit" && mineEvent) {
+            Sound.play("heart");
+            HUD.shake("#hearts-" + me);
+            HUD.toast("Your rival is cheating: their dish took " + e.text.slice(1) + "!");
+        }
+        if (e.kind === "throw") Sound.play("throw", mineEvent ? 0.7 : 0.4);
+        if (e.kind === "hit") {
+            Sound.play("bonk");
+            if (mineEvent) {
+                HUD.shake("#kitchen");
+                HUD.toast("BONK! You dropped everything and you're stunned");
+            }
+        }
+        if (e.kind === "burnt" && mineEvent) Sound.play("burnt");
+        if (e.kind === "sprint" && mineEvent) Sound.play("sprint");
+        if (e.kind === "cheat") {
+            if (e.on) Sound.play("cheat", mineEvent ? 0.7 : 0.4);
+            if (mineEvent) HUD.toast(e.on ? "Cheat ON for " + e.time + " s: instant chopping & cooking, your dishes hurt your rival"
+                : "Cheat OFF. Ready again in " + e.cooldown + " s");
+        }
+        if (e.kind === "overtime") {
+            Sound.play("overtime");
+            HUD.toast("Hearts are level! Sudden Death Dish: " + state.suddenDishLabel + ". First to serve it wins!");
+        }
+        if (e.kind === "ko") Sound.play("ko");
+    };
+
+    // Sounds for my own chef that come from the state, not from events
+    let lastChopSound = 0;
+    const ownSounds = function (before, after) {
+        if (!before || !after) return;
+        if (!before.held && after.held) Sound.play("pickup", 0.5);
+        else if (before.held && !after.held && !after.stun) Sound.play("drop", 0.4);
+        const now = performance.now();
+        if (after.chopping && now - lastChopSound > 260) { Sound.play("chop", 0.6); lastChopSound = now; }
     };
 
     Socket.on("state", function (s) {
         if (me === null || !renderer) return;
+        const before = state && state.players ? state.players[me] : null;
         state = s;
+        if (s.suddenDish) s.suddenDishLabel = recipeNames[s.suddenDish];
         (s.events || []).forEach(handleEvent);
         renderer.setState(s);
+        if (s.phase === "playing") ownSounds(before, s.players[me]);
 
         if (s.phase === "lobby") UI.updateRoom(s, me);
         if (s.phase !== "lobby" && prevPhase === "lobby") UI.show("game");
         if (s.phase !== "lobby") HUD.update(s);
-        if (s.phase === "countdown") HUD.showCount(String(s.countdown));
-        if (s.phase === "playing" && prevPhase === "countdown") HUD.showCount("COOK!");
-        if (s.phase === "over" && prevPhase !== "over") setTimeout(() => UI.showOver(s, me), 900);
+        if (s.phase === "countdown") {
+            if (prevPhase !== "countdown" || String(s.countdown) !== lastCount) Sound.play("count", 0.5);
+            lastCount = String(s.countdown);
+            HUD.showCount(lastCount);
+        }
+        if (s.phase === "playing" && prevPhase === "countdown") {
+            HUD.showCount("COOK!");
+            Sound.play("go", 0.6);
+            Sound.startMusic();
+        }
+        if (s.phase === "over" && prevPhase !== "over") {
+            Sound.stopMusic();
+            Sound.play(s.winner === me ? "win" : "lose");
+            setTimeout(() => UI.showOver(s, me), 900);
+        }
 
         Input.setEnabled(s.phase === "playing");
         if (Input.isAiming()) {
@@ -221,8 +313,10 @@ $(function () {
         prevPhase = s.phase;
     });
 
-    Socket.on("disconnect", function () {
-        if (me !== null) {
+    // The server forgets the waiting list and the game when the connection drops
+    Socket.on("disconnect", function (reason) {
+        if (reason === "io client disconnect") return;           // we closed it ourselves (signing out)
+        if (me !== null || $("body").attr("data-page") === "queue") {
             stopGame();
             UI.show("home");
             $("#match-error").text("Lost connection to the server.");

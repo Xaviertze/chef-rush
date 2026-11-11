@@ -17,8 +17,9 @@ const Socket = (function () {
         socket.on("paired", (data) => call("paired", JSON.parse(data)));
         socket.on("state", (data) => call("state", JSON.parse(data)));
         socket.on("opponent left", (name) => call("opponent left", name));
+        socket.on("connect", () => call("connect"));
         socket.on("connect_error", (err) => call("connect error", err.message));
-        socket.on("disconnect", () => call("disconnect"));
+        socket.on("disconnect", (reason) => call("disconnect", reason));
     };
 
     const disconnect = function () {
@@ -37,6 +38,10 @@ const Socket = (function () {
         input: (state) => emit("input", JSON.stringify(state)),
         pick: () => emit("pick"),
         throwAt: (angle) => emit("throw", JSON.stringify({ angle })),
-        cheat: () => emit("cheat")
+        cheat: () => emit("cheat"),                 // cheat button: on / off
+        cheatOn: () => emit("cheat on"),            // secret key combination
+        cheatOff: () => emit("cheat off"),          // C
+        setHearts: (n) => emit("hearts", n),        // waiting room: starting hearts
+        sprint: () => emit("sprint")
     };
 })();

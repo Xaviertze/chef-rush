@@ -79,6 +79,9 @@ const UI = (function () {
 
     const updateRoom = function (state, myIndex) {
         const mine = state.ready[myIndex], theirs = state.ready[1 - myIndex];
+        $("#hearts-options button").each(function () {
+            $(this).toggleClass("on", Number($(this).attr("data-hearts")) === state.hearts);
+        });
         $("#ready-me").text(mine ? "Ready!" : "Not ready").toggleClass("ready", mine);
         $("#ready-opponent").text(theirs ? "Ready!" : "Not ready").toggleClass("ready", theirs);
         $("#ready-btn").text(mine ? "Cancel ready" : "I'm ready!").toggleClass("on", mine);
@@ -124,7 +127,8 @@ const UI = (function () {
                     row.append(main);
                     row.append($("<div class='dash-wins'></div>").append($("<b></b>").text(u.wins)).append($("<span>wins</span>")));
                     row.append($("<div class='dash-extra'></div>").text(
-                        u.games + (u.games === 1 ? " game" : " games") + " · " + rate + "% win rate · best score " + u.best));
+                        u.games + (u.games === 1 ? " game" : " games") + " · " + rate + "% win rate · best score " +
+                        u.bestServed + (u.bestServed === 1 ? " dish" : " dishes")));
                     rows.append(row);
                 });
                 box.append(rows);
@@ -142,9 +146,15 @@ const UI = (function () {
     };
     const loadRules = function () {
         fetch("/rules").then((res) => res.json())
-            .then((rules) => $(".round-length").text(formatLength(rules.gameTime)))
+            .then(function (rules) {
+                $(".round-length").text(formatLength(rules.gameTime));
+                $(".overtime-length").text(formatLength(rules.overtime));
+            })
             .catch(() => { /* keep the default text */ });
     };
+
+    // 4.5 hearts -> "4½"
+    const heartsText = (n) => Math.floor(n) + (n % 1 ? "½" : "");
 
     // ---------- Game over page ----------
     const showOver = function (state, myIndex) {
@@ -156,7 +166,7 @@ const UI = (function () {
         $("#over-p2").text(b.name + (w === 1 ? " 👑" : ""));
         const rows = [
             ["Dishes served", "served"], ["Ingredients grabbed", "grabbed"],
-            ["Orders missed", "missed"], ["Rivals bonked", "hits"], ["Final score", "score"]
+            ["Orders missed", "missed"], ["Rivals hit", "hits"]
         ];
         const body = $("#over-stats").empty();
         rows.forEach(function (r) {
@@ -169,7 +179,17 @@ const UI = (function () {
             });
             body.append(tr);
         });
-        $("#over-note").text(a.score === b.score && w !== -1 ? "Tied on points, so dishes served decided it." : "");
+        // How the round ended
+        const winner = w >= 0 ? state.players[w] : null, loser = w >= 0 ? state.players[1 - w] : null;
+        const notes = {
+            ko: () => loser.name + " lost their last heart and was knocked out.",
+            "double-ko": () => "Both chefs lost their last heart at the same moment.",
+            time: () => "Time's up: " + winner.name + " had more hearts left (" + heartsText(winner.hearts) +
+                " vs " + heartsText(loser.hearts) + ").",
+            sudden: () => winner.name + " served the Sudden Death Dish first.",
+            "overtime-draw": () => "Nobody served the Sudden Death Dish in time."
+        };
+        $("#over-note").text(notes[state.endReason] ? notes[state.endReason]() : "");
         loadDashboard("#dashboard-over");
         show("over");
     };

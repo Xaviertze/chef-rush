@@ -51,7 +51,15 @@ const DEFS = `
             <stop offset="0.5" stop-color="#f7c531" />
             <stop offset="1" stop-color="#c98a0a" />
         </linearGradient>
+        <radialGradient id="heart-grad" fx="35%" fy="30%">
+            <stop offset="0.1" stop-color="#ff9a9a" />
+            <stop offset="1" stop-color="#d81e2c" />
+        </radialGradient>
+        <!-- Outside the slides: clipPath keeps only the left half of a shape (used for the half heart) -->
+        <clipPath id="left-half"><rect x="0" y="0" width="32" height="64"/></clipPath>
     </defs>`;
+
+const HEART = "M32 56 C10 40 4 30 4 20 a14 14 0 0 1 28 -6 a14 14 0 0 1 28 6 c0 10 -6 20 -28 36 z";
 
 const svg = (body) =>
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">${DEFS}\n${body}\n</svg>\n`;
@@ -106,7 +114,15 @@ const icons = {
         <path d="M50 12 h8 v6 a10 10 0 0 1 -12 10" fill="none" stroke="#1b1209" stroke-width="3"/>
         <path d="M14 8 h36 v12 a18 18 0 0 1 -36 0 z" fill="url(#gold-grad)" ${STROKE}/>
         <rect x="28" y="37" width="8" height="10" fill="url(#gold-grad)" ${STROKE}/>
-        <rect x="18" y="47" width="28" height="9" rx="2" fill="#7a4518" ${STROKE}/></g>`)
+        <rect x="18" y="47" width="28" height="9" rx="2" fill="#7a4518" ${STROKE}/></g>`),
+    // Hearts (lives): full, half and empty
+    "heart": svg(`<g id="heart"><path d="${HEART}" fill="url(#heart-grad)" stroke="#1b1209" stroke-width="3"/>
+        <ellipse cx="18" cy="20" rx="5" ry="3.5" fill="#ffffff" opacity="0.7"/></g>`),
+    "heart-half": svg(`<g id="heart-half"><path d="${HEART}" fill="#5a4a4a"/>
+        <path d="${HEART}" fill="url(#heart-grad)" clip-path="url(#left-half)"/>
+        <path d="${HEART}" fill="none" stroke="#1b1209" stroke-width="3"/>
+        <ellipse cx="18" cy="20" rx="5" ry="3.5" fill="#ffffff" opacity="0.7"/></g>`),
+    "heart-empty": svg(`<g id="heart-empty"><path d="${HEART}" fill="#5a4a4a" stroke="#1b1209" stroke-width="3"/></g>`)
 };
 
 Object.keys(icons).forEach(function (name) {

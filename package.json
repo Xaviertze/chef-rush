@@ -1,7 +1,7 @@
 {
   "name": "chef-rush",
   "version": "1.0.0",
-  "description": "Chef Rush - 1v1 real-time cooking game over WebSocket (COMP4021 group project)",
+  "description": "Chef Wars: Showdown Battle - 1v1 real-time cooking survival game over WebSocket (COMP4021 group project)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
