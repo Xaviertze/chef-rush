@@ -25,7 +25,7 @@ const SETTINGS = {
     paceEvery: 60,                                     // every minute orders speed up:
     orderTimeDrop: 8, orderGapDrop: 3,                 // 8 s less to serve, 3 s less between orders
     minOrderTime: 36, minOrderGap: 6,
-    minOrders: 2,
+    minOrders: 1,                                      // start with 1 order; serve your last one and the next comes right away
     maxOrders: 4,
     spawnMin: 1.2, spawnMax: 2.2,                      // seconds between ingredient spawns
     lifeMin: 8, lifeMax: 10,                           // spawned ingredients vanish after 8-10 s

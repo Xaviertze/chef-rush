@@ -62,7 +62,7 @@ For a short demo round: `GAME_TIME=60 node server.js` (macOS/Linux) or `set GAME
 | Veggie Stew | chop carrot + chop onion, cook them in your pot (8 s) | −1 heart |
 
 - **Hearts:** both chefs start with the same number of hearts (5–8, picked in the waiting room). They're shown above each chef's order list.
-- **Orders:** each has a countdown bar. Serve it in time to clear it and get a **speed boost (1.3× for 3 s)**. If the bar runs out, the order vanishes and you **lose the hearts shown on it**. Both chefs get the same order sequence.
+- **Orders:** each chef starts with **1 order**. A new one arrives every 15 s (faster each minute), up to 4 at a time; serve your last one and the next comes right away. Each order has a countdown bar. Serve it in time to clear it and get a **speed boost (1.3× for 3 s)**. If the bar runs out, the order vanishes and you **lose the hearts shown on it**. Both chefs get the same order sequence.
 - **Rush orders:** serve an order while more than half of its bar is left and your rival gets an extra order on top of their own (a purple card marked ⚡), unless they already have 4. Rush orders don't delay their normal orders.
 - **Streak:** every 3 dishes in a row without a missed order gives ½ heart back, never more than the starting hearts. The three pips under the hearts show the streak; a missed order resets it.
 - **Orders speed up:** every minute, new orders arrive more often and their bars get shorter (minute 1: a new order every 15 s with 60 s to serve it; minute 2: every 12 s, 52 s; minute 3: every 9 s, 44 s). "ORDERS SPEED UP!" appears for both chefs, so missed orders (and lost hearts) get more likely near the end.
@@ -106,7 +106,7 @@ data/users.json           Created automatically: accounts (hashed passwords) + s
 public/index.html         Home, waiting, waiting room, game and game over pages, <audio> elements
 public/style.css          Layout + keyframe animations
 public/img/sprites.png    Sprite sheet: ingredients (raw/chopped), plate, effects, chef animations
-public/img/icons/*.svg    Dish, ingredient, pot, heart and trophy icons
+public/img/icons/*.svg    Dish, pot, heart and trophy icons, and pixel-art ingredient icons taken from the sprite sheet
 public/sounds/*.wav       Sound effects and background music
 public/js/auth.js         Register / sign in / validate / sign out (fetch)
 public/js/ui.js           Page switching, form validation, waiting list, waiting room, wins dashboard, game over
@@ -118,7 +118,8 @@ public/js/input.js        Keyboard + mouse, cheat combination
 public/js/socket.js       All WebSocket messages
 public/js/main.js         Connects everything
 tools/make-sprites.html   Draws the older placeholder sprite sheet (same layout); the game now uses our own sprites.png
-tools/make-icons.js       node tools/make-icons.js regenerates the SVG icons
+tools/make-icons.js       node tools/make-icons.js regenerates the pot, heart and trophy SVG icons (the dish icons are hand-drawn)
+tools/make-ingredient-icons.js  node tools/make-ingredient-icons.js turns the sprite sheet's ingredient cells into SVG icons
 tools/make-sounds.js      node tools/make-sounds.js regenerates the sound files
 ```
 
@@ -138,7 +139,7 @@ tools/make-sounds.js      node tools/make-sounds.js regenerates the sound files
 | 1.3 / 3.2 CSS | Grid/flex layouts for home, HUD, dashboard, stats table |
 | 2.1 / 4.2 CSS Animations | Order cards, dashboard bars growing, spinner, countdown, hearts shake, screen shake |
 | 4.3 Controlling CSS Animations | `animationend` removes finished order cards; animations restarted by resetting `animation-name` |
-| 4.1 / 4.4 SVG | Dish/ingredient/pot/heart/trophy icons with `<g>`, `<defs>`, linear + radial gradients |
+| 4.1 / 4.4 SVG | Dish/pot/heart/trophy icons with `<g>`, `<defs>`, linear + radial gradients; ingredient icons built from `<rect>` pixels |
 | 3.1 / 3.3 jQuery | DOM updates, events, `fadeIn`/`fadeOut` toasts |
 | 5.1 Arrays and Objects | Map rows, order queues, tiles keyed by `"x,y"` |
 | 5.3 Module Pattern | `Renderer(...)` factory; `Sprites`, `Auth`, `UI`, `HUD`, `Input`, `Socket`, `Sound` IIFE modules |

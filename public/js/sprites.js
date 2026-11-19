@@ -15,7 +15,7 @@ const Sprites = (function () {
     // Chef animation sequences: row 1 = player 1 (red), row 2 = player 2 (blue)
     const CHEF = { walk: [0, 1, 2, 3], chop: [4, 5], dizzy: [6] };
 
-    const ICONS = ["salad", "tomato-soup", "veggie-stew", "lettuce", "tomato", "tomato-whole", "onion", "carrot", "pot", "coin", "trophy"];
+    const ICONS = ["salad", "tomato-soup", "veggie-stew", "lettuce", "tomato", "tomato-whole", "onion", "carrot", "pot", "trophy"];
 
     const sheet = new Image();
     const icons = {};

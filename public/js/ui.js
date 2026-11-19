@@ -1,6 +1,6 @@
 // UI module: switching pages (home, waiting, waiting room, game, game over) and the wins dashboard.
 // Lecture links: 5.3 (IIFE module), 3.1/3.3 (jQuery DOM, show/hide, fadeIn), 7.5 (form validation),
-// 8.2 (fetch for the ranking), 4.1 (SVG trophy/coin icons)
+// 8.2 (fetch for the ranking), 4.1 (SVG trophy icon)
 
 const UI = (function () {
 
