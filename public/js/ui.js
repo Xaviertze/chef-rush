@@ -127,8 +127,8 @@ const UI = (function () {
                     row.append(main);
                     row.append($("<div class='dash-wins'></div>").append($("<b></b>").text(u.wins)).append($("<span>wins</span>")));
                     row.append($("<div class='dash-extra'></div>").text(
-                        u.games + (u.games === 1 ? " game" : " games") + " · " + rate + "% win rate · best score " +
-                        u.bestServed + (u.bestServed === 1 ? " dish" : " dishes")));
+                        u.games + (u.games === 1 ? " game" : " games") + " · " + rate + "% win rate · most hearts left " +
+                        heartsText(u.bestHearts || 0)));
                     rows.append(row);
                 });
                 box.append(rows);
@@ -165,7 +165,8 @@ const UI = (function () {
         $("#over-p1").text(a.name + (w === 0 ? " 👑" : ""));
         $("#over-p2").text(b.name + (w === 1 ? " 👑" : ""));
         const rows = [
-            ["Dishes served", "served"], ["Ingredients grabbed", "grabbed"],
+            ["Hearts left", "hearts"], ["Dishes served", "served"], ["Best streak", "bestStreak"],
+            ["Rush orders sent", "rushes"], ["Ingredients grabbed", "grabbed"],
             ["Orders missed", "missed"], ["Rivals hit", "hits"]
         ];
         const body = $("#over-stats").empty();
@@ -175,7 +176,7 @@ const UI = (function () {
             [a, b].forEach(function (p, i) {
                 const other = i ? a : b;
                 const better = r[1] === "missed" ? p[r[1]] < other[r[1]] : p[r[1]] > other[r[1]];
-                tr.append($("<td></td>").text(p[r[1]]).toggleClass("best", better));
+                tr.append($("<td></td>").text(r[1] === "hearts" ? heartsText(p.hearts) + "♥" : p[r[1]]).toggleClass("best", better));
             });
             body.append(tr);
         });
@@ -187,7 +188,8 @@ const UI = (function () {
             time: () => "Time's up: " + winner.name + " had more hearts left (" + heartsText(winner.hearts) +
                 " vs " + heartsText(loser.hearts) + ").",
             sudden: () => winner.name + " served the Sudden Death Dish first.",
-            "overtime-draw": () => "Nobody served the Sudden Death Dish in time."
+            "overtime-draw": () => "Nobody served the Sudden Death Dish in time.",
+            forfeit: () => loser.name + " left the game, so " + winner.name + " wins by forfeit."
         };
         $("#over-note").text(notes[state.endReason] ? notes[state.endReason]() : "");
         loadDashboard("#dashboard-over");

@@ -15,7 +15,8 @@ const HUD = (function () {
         me = myIndex;
         cards = [{}, {}];
         lastHearts = [null, null];
-        $("#orders-0, #orders-1, #hearts-0, #hearts-1").empty();
+        $("#orders-0, #orders-1, #hearts-0, #hearts-1, #streak-0, #streak-1").empty().removeData();
+        $("#low-hearts").addClass("hidden");
         $(".hud-player").removeClass("me");
         $("#hud-" + me).addClass("me");
         names.forEach((n, i) => $("#name-" + i).text(n + (i === me ? " (you)" : "")));
@@ -44,7 +45,9 @@ const HUD = (function () {
         body.append($("<img class='order-dish'>").attr("src", Sprites.iconPath(r.icon)).attr("alt", r.label));
         const info = $("<div class='order-info'></div>");
         const tag = order.sudden ? $("<b class='sudden-tag'></b>").text("WIN!") : $("<b class='cost'></b>").text("-" + cost);
-        info.append($("<div class='order-name'></div>").text(r.label).append(tag));
+        // A rush order (sent by the rival's fast serve) gets a purple frame and a lightning mark
+        if (order.rush) card.addClass("rush").attr("title", "RUSH ORDER from your rival. " + card.attr("title"));
+        info.append($("<div class='order-name'></div>").text((order.rush ? "⚡ " : "") + r.label).append(tag));
         const steps = $("<div class='order-ings'></div>");
         r.steps.forEach((name) => steps.append($("<img>").attr("src", Sprites.iconPath(name)).attr("alt", name).attr("title", name)));
         body.append(info);
@@ -98,6 +101,21 @@ const HUD = (function () {
         box.attr("title", hearts + " of " + start + " hearts left");
     };
 
+    // Streak row: one pip per dish served in a row; the row fills up, gives ½ heart, and starts again
+    const drawStreak = function (i, streak) {
+        const box = $("#streak-" + i);
+        if (box.data("streak") === streak) return;                 // only rebuild when it changes
+        const before = box.data("streak");
+        box.data("streak", streak).empty();
+        const need = settings.streakHeal || 3;
+        const filled = streak === 0 ? 0 : ((streak - 1) % need) + 1;
+        box.append($("<span></span>").text("Streak"));
+        for (let k = 0; k < need; k++) box.append($("<i></i>").toggleClass("on", k < filled));
+        box.append($("<span></span>").text("+½♥"));
+        box.attr("title", streak + " dishes in a row. Every " + need + " in a row gives ½ heart back.");
+        if (before !== undefined && streak > before) restartAnimation(box, "bump");
+    };
+
     const update = function (state) {
         const t = Math.ceil(state.timeLeft);
         $("#clock").text(Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"))
@@ -110,9 +128,12 @@ const HUD = (function () {
             if (lastHearts[i] !== null && p.hearts < lastHearts[i]) restartAnimation($("#hearts-" + i), "shake");
             lastHearts[i] = p.hearts;
             $("#cheat-" + i).toggleClass("hidden", !p.cheat).text("CHEAT " + Math.ceil(p.cheatLeft) + "s");
+            drawStreak(i, p.streak);
             updateOrders(i, p.orders);
         });
         const p = state.players[me];
+        // Red pulse around the kitchen when I'm down to my last heart
+        $("#low-hearts").toggleClass("hidden", !(state.phase === "playing" && p.hearts <= 1));
         skill("#cheat-btn", "Cheat", null, p.cheat, p.cheatLeft, settings.cheatTime, p.cheatWait, settings.cheatCooldown);
         skill("#sprint-btn", "Sprint", "Space", p.sprinting, p.sprintLeft, settings.sprintTime, p.sprintWait, settings.sprintCooldown);
     };
@@ -129,12 +150,19 @@ const HUD = (function () {
     const showCount = function (label) {
         const box = $("#countdown"), num = $("#count-num");
         if (!box.hasClass("hidden") && num.text() === label) return;
-        box.removeClass("hidden");
+        box.removeClass("hidden banner");
         num.text(label);
         restartAnimation(num, "count-pop");
-        if (label === "COOK!") setTimeout(() => box.addClass("hidden"), 800);
+        if (label === "COOK!") setTimeout(() => { if (num.text() === "COOK!") box.addClass("hidden"); }, 800);
     };
-    const hideCount = () => $("#countdown").addClass("hidden");
+    const hideCount = () => $("#countdown").addClass("hidden").removeClass("banner");
+
+    // Big banner over the kitchen when the round ends ("K.O.!", "TIME'S UP!"), before the game over page
+    const showBanner = function (label) {
+        $("#countdown").removeClass("hidden").addClass("banner");
+        $("#low-hearts").addClass("hidden");
+        restartAnimation($("#count-num").text(label), "count-pop");
+    };
 
     const toast = function (message) {
         $("#toast").stop(true, true).text(message).fadeIn(120).delay(1400).fadeOut(300);
@@ -142,5 +170,5 @@ const HUD = (function () {
 
     const shake = (selector) => restartAnimation($(selector), "shake");
 
-    return { init, update, markOrder, showCount, hideCount, toast, shake };
+    return { init, update, markOrder, showCount, hideCount, showBanner, toast, shake };
 })();

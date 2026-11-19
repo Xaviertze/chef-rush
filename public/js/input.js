@@ -4,21 +4,26 @@
 // right-click chops instead of opening the browser menu.
 //
 //   WASD or arrow keys   move
-//   Left click  (or P)   pick up / put down / serve (while aiming, left click throws)
-//   Right click (or O)   hold to chop (about 2 seconds)
-//   T                    start aiming at the mouse pointer; left click throws, T again (or Esc) cancels
-//   Space                sprint skill: run faster for 5 s, then 10 s to recharge
+//   Left click, P or E   pick up / put down / serve (while aiming, left click throws)
+//   Right click, R or O  hold to chop (about 2 seconds)
+//   T or Q               start aiming at the mouse pointer; left click throws, T / Q again (or Esc) cancels
+//   Space                sprint skill: run faster for 5 s, then 5 s to recharge
+//   1 2 3 4              emotes (a bubble above your chef)
 //   W S W S A D A D      secret cheat combination (up down up down left right left right, arrows work too)
-//   C                    end the cheat early
+//                        (the Cheat button above the kitchen also turns cheat on and off)
 
 const Input = (function () {
     const MOVE = {
         ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
         KeyW: "up", KeyS: "down", KeyA: "left", KeyD: "right"
     };
-    const ACTIONS = ["KeyP", "KeyO", "KeyT", "KeyC", "Space", "Escape"];
+    const PICK_KEYS = ["KeyP", "KeyE"];
+    const CHOP_KEYS = ["KeyR", "KeyO"];
+    const AIM_KEYS = ["KeyT", "KeyQ"];
+    const EMOTE_KEYS = ["Digit1", "Digit2", "Digit3", "Digit4"];
+    const ACTIONS = PICK_KEYS.concat(CHOP_KEYS, AIM_KEYS, EMOTE_KEYS, ["Space", "Escape"]);
     const state = { up: false, down: false, left: false, right: false, chop: false };
-    let chopKey = false;            // O held
+    const chopKeys = {};            // chop keys (R / O) held right now
     let chopMouse = false;          // right mouse button held
     let enabled = false;
     let aiming = false;
@@ -40,14 +45,14 @@ const Input = (function () {
 
     const send = () => cb.input(Object.assign({}, state));
 
-    // Chopping continues while either O or the right mouse button is held
+    // Chopping continues while any chop key (R / O) or the right mouse button is held
     const setChop = function () {
-        const on = chopKey || chopMouse;
+        const on = Object.keys(chopKeys).length > 0 || chopMouse;
         if (state.chop !== on) { state.chop = on; send(); }
     };
 
     const releaseAll = function () {
-        chopKey = false;
+        Object.keys(chopKeys).forEach((k) => { delete chopKeys[k]; });
         chopMouse = false;
         let changed = false;
         Object.keys(state).forEach(function (k) {
@@ -62,7 +67,7 @@ const Input = (function () {
         cb.aim(null);
     };
 
-    // T: start aiming, or cancel if already aiming
+    // T / Q: start aiming, or cancel if already aiming
     const toggleAim = function () {
         if (aiming) { cancelAim(); return; }
         if (!cb.canThrow()) return;
@@ -88,19 +93,19 @@ const Input = (function () {
         if (ACTIONS.indexOf(code) < 0) return;
         e.preventDefault();
         if (e.originalEvent.repeat) return;
-        if (code === "KeyP") cb.pick();
-        if (code === "KeyO") { chopKey = true; setChop(); }
-        if (code === "KeyT") toggleAim();
-        if (code === "KeyC") cb.cheatOff();
+        if (PICK_KEYS.indexOf(code) >= 0) cb.pick();
+        if (CHOP_KEYS.indexOf(code) >= 0) { chopKeys[code] = true; setChop(); }
+        if (AIM_KEYS.indexOf(code) >= 0) toggleAim();
         if (code === "Space") cb.sprint();       // preventDefault above stops Space scrolling or pressing buttons
         if (code === "Escape") cancelAim();
+        if (EMOTE_KEYS.indexOf(code) >= 0) cb.emote(EMOTE_KEYS.indexOf(code) + 1);
     };
 
     const onKeyUp = function (e) {
         if (!cb) return;
         const code = e.originalEvent.code;
         if (MOVE[code] && state[MOVE[code]]) { state[MOVE[code]] = false; send(); }
-        if (code === "KeyO") { chopKey = false; setChop(); }
+        if (chopKeys[code]) { delete chopKeys[code]; setChop(); }
     };
 
     // Mouse buttons work anywhere on the game page except on buttons (e.g. the cheat button)
@@ -143,7 +148,7 @@ const Input = (function () {
     const attach = function (callbacks) {
         cb = callbacks;
         aiming = false;
-        chopKey = false;
+        Object.keys(chopKeys).forEach((k) => { delete chopKeys[k]; });
         chopMouse = false;
         Object.keys(state).forEach((k) => { state[k] = false; });
     };

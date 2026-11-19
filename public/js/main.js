@@ -8,6 +8,7 @@ $(function () {
     let lastCount = null;           // last countdown number shown (for the beep)
     let recipeNames = {};           // recipe key -> "Garden Salad"
     let renderer = null;
+    let config = null;              // map + settings of the current game (sent when paired)
     let imagesReady = false;
 
     const mine = () => (state && me !== null ? state.players[me] : null);
@@ -184,14 +185,15 @@ $(function () {
         recipeNames = {};
         Object.keys(data.config.recipes).forEach((k) => { recipeNames[k] = data.config.recipes[k].label; });
         if (renderer) renderer.stop();
+        config = data.config;
         renderer = Renderer($("#kitchen").get(0), data.config, me);
 
         Input.attach({
             input: (s) => Socket.input(s),
             pick: () => Socket.pick(),
             cheatOn: () => Socket.cheatOn(),
-            cheatOff: () => Socket.cheatOff(),
             sprint: () => Socket.sprint(),
+            emote: (n) => Socket.emote(n),
             toWorld: (x, y) => renderer.toWorld(x, y),
             aim: (point) => renderer.setAim(point),
             canThrow: function () {
@@ -225,16 +227,36 @@ $(function () {
     // ---------- Game events ----------
     const COLORS = {
         serve: "#7dff6b", expire: "#ff6b5b", cheathit: "#ff7bf0", hit: "#ffd23f", cheat: "#ff7bf0",
-        burnt: "#ff6b5b", sprint: "#5ee0ff", overtime: "#ffd23f", ko: "#ff3b30"
+        burnt: "#ff6b5b", sprint: "#5ee0ff", overtime: "#ffd23f", ko: "#ff3b30", speedup: "#ffd23f",
+        rush: "#ff7bf0", heal: "#ff9ec4", potdone: "#7dff6b", land: "#5ee0ff"
     };
 
     const handleEvent = function (e) {
         if (e.kind === "msg") { if (e.to === me) HUD.toast(e.text); return; }
         const mineEvent = e.to === me;
+        if (e.kind === "emote") {                                  // keys 1-4: bubble above that chef
+            renderer.addEmote(e.to, e.n);
+            Sound.play("emote", mineEvent ? 0.5 : 0.35);
+            return;
+        }
         if (e.text) renderer.addPopup(e.x, e.y, e.text, COLORS[e.kind] || "#fff");
         if (e.kind === "serve") {
             HUD.markOrder(e.to, e.order, "served");
+            renderer.addBurst(e.x, e.y, ["#7dff6b", "#ffd23f", "#fff"], 16);
             if (mineEvent) { Sound.play("serve"); Sound.play("boost", 0.5); }
+        }
+        if (e.kind === "rush") {                                   // e.to = the chef who receives the extra order
+            Sound.play("rush", mineEvent ? 0.7 : 0.4);
+            HUD.toast(mineEvent ? e.from + " served fast: RUSH ORDER for you!" : "Fast serve! Rush order sent to your rival");
+        }
+        if (e.kind === "heal") {
+            renderer.addBurst(e.x, e.y + 0.8, ["#ff9ec4", "#ff3b30", "#fff"], 14);
+            if (mineEvent) { Sound.play("heal"); HUD.toast("3 dishes in a row: " + e.text.slice(1) + " back!"); }
+        }
+        if (e.kind === "potdone" && mineEvent) Sound.play("ding");
+        if (e.kind === "land") {
+            renderer.addBurst(e.x, e.y - 0.1, ["#5ee0ff", "#fff"], 10);
+            if (mineEvent) Sound.play("land", 0.6);
         }
         if (e.kind === "expire") {
             HUD.markOrder(e.to, e.order, "expired");
@@ -248,6 +270,7 @@ $(function () {
         if (e.kind === "throw") Sound.play("throw", mineEvent ? 0.7 : 0.4);
         if (e.kind === "hit") {
             Sound.play("bonk");
+            renderer.addBurst(e.x, e.y + 0.6, ["#ffd23f", "#fff", "#ff6b5b"], 18, 6);
             if (mineEvent) {
                 HUD.shake("#kitchen");
                 HUD.toast("BONK! You dropped everything and you're stunned");
@@ -262,9 +285,13 @@ $(function () {
         }
         if (e.kind === "overtime") {
             Sound.play("overtime");
-            HUD.toast("Hearts are level! Sudden Death Dish: " + state.suddenDishLabel + ". First to serve it wins!");
+            HUD.toast("Hearts are level! Kitchen cleared. Sudden Death Dish: " + state.suddenDishLabel + ". First to serve it wins!");
         }
         if (e.kind === "ko") Sound.play("ko");
+        if (e.kind === "speedup") {
+            Sound.play("speedup");
+            HUD.toast("Orders speed up! New orders every " + e.orderGap + " s, " + e.orderTime + " s to serve them");
+        }
     };
 
     // Sounds for my own chef that come from the state, not from events
@@ -277,6 +304,32 @@ $(function () {
         if (after.chopping && now - lastChopSound > 260) { Sound.play("chop", 0.6); lastChopSound = now; }
     };
 
+    // Warning sounds for my own kitchen: a finished pot beeps faster and faster as it gets closer to burning,
+    // and an order that is almost out of time ticks once a second
+    let lastAlarm = 0, lastTick = 0;
+    const warnings = function (s) {
+        const now = performance.now();
+        let burn = 0;                                            // my pot that is closest to burning (0-1)
+        Object.keys(s.tiles).forEach(function (k) {
+            const pot = s.tiles[k], x = Number(k.split(",")[0]);
+            if (pot.name !== "pot" || pot.state !== "done" || (x < config.cols / 2 ? 0 : 1) !== me) return;
+            burn = Math.max(burn, pot.burn / config.settings.burnTime);
+        });
+        if (burn > 0.4 && now - lastAlarm > 900 - 650 * (burn - 0.4) / 0.6) { Sound.play("alarm", 0.5); lastAlarm = now; }
+        const urgent = s.players[me].orders.some((o) => !o.sudden && o.t / o.total < 0.2);
+        if (urgent && now - lastTick > 1000) { Sound.play("tick", 0.6); lastTick = now; }
+    };
+
+    // The music speeds up with the orders (every minute), and again for the last 30 seconds and overtime
+    const musicRate = function (s) {
+        if (s.overtime || s.timeLeft <= 30) return 1.25;
+        const elapsed = config.settings.gameTime - s.timeLeft;
+        return 1 + 0.08 * Math.floor(elapsed / config.settings.paceEvery);
+    };
+
+    const BANNERS = { ko: "K.O.!", "double-ko": "DOUBLE K.O.!", time: "TIME'S UP!", sudden: "SERVED!",
+        "overtime-draw": "DRAW!", forfeit: "FORFEIT!" };
+
     Socket.on("state", function (s) {
         if (me === null || !renderer) return;
         const before = state && state.players ? state.players[me] : null;
@@ -284,7 +337,11 @@ $(function () {
         if (s.suddenDish) s.suddenDishLabel = recipeNames[s.suddenDish];
         (s.events || []).forEach(handleEvent);
         renderer.setState(s);
-        if (s.phase === "playing") ownSounds(before, s.players[me]);
+        if (s.phase === "playing") {
+            ownSounds(before, s.players[me]);
+            warnings(s);
+            Sound.setMusicRate(musicRate(s));
+        }
 
         if (s.phase === "lobby") UI.updateRoom(s, me);
         if (s.phase !== "lobby" && prevPhase === "lobby") UI.show("game");
@@ -302,7 +359,8 @@ $(function () {
         if (s.phase === "over" && prevPhase !== "over") {
             Sound.stopMusic();
             Sound.play(s.winner === me ? "win" : "lose");
-            setTimeout(() => UI.showOver(s, me), 900);
+            HUD.showBanner(BANNERS[s.endReason] || "GAME OVER");      // 2 s to take in how it ended
+            setTimeout(function () { if (state === s) UI.showOver(s, me); }, 2000);
         }
 
         Input.setEnabled(s.phase === "playing");

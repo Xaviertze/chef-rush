@@ -2,7 +2,7 @@
 // Lecture links: 5.3 (module pattern with private state), 6.1/6.2 (canvas rect/arc/paths/text,
 // mouse position inside the canvas with offset()), 6.3/6.4 (sprites + requestAnimationFrame,
 // timestamps to time the walk/chop animations).
-// Outside the slides: ctx.save/translate/rotate/restore and setLineDash.
+// Outside the slides: ctx.save/translate/rotate/restore, setLineDash and textBaseline (emote bubbles).
 
 const Renderer = function (canvas, config, me) {
     const ctx = canvas.getContext("2d");
@@ -16,6 +16,10 @@ const Renderer = function (canvas, config, me) {
     let aimPoint = null;
     const shown = [null, null];
     const popups = [];
+    const particles = [];                  // little squares that fly out of chops, serves and hits
+    const bubbles = [null, null];          // the emote showing above each chef: { icon, start }
+    const EMOTES = ["👍", "😂", "😡", "🔥"];
+    const lastChips = [0, 0];              // when each chef's last chopping chips flew
     let last = performance.now();
 
     const RECIPE_BY_ITEMS = {};
@@ -274,7 +278,14 @@ const Renderer = function (canvas, config, me) {
             if (p.stun > 0 || p.knockedOut) sequence = "dizzy";
             else if (p.chopping) { sequence = "chop"; index = Math.floor(now / 120); }
             else if (p.moving) index = Math.floor(now / 110);
+            // Just recovered from a stun: the chef flickers while throws can't stun them again
+            if (p.immune && p.stun <= 0 && Math.floor(now / 90) % 2) ctx.globalAlpha = 0.45;
             Sprites.drawChef(ctx, i, sequence, index, px - 26, py - 38, 52, p.fx < -0.1);
+            ctx.globalAlpha = 1;
+            if (p.chopping && p.target && now - lastChips[i] > 110) {   // chips fly off the board while chopping
+                lastChips[i] = now;
+                burst(p.target.x + 0.5, p.target.y + 0.5, ["#9be07a", "#f0c98e", "#fff"], 2, 2.2);
+            }
 
             // Facing away from the camera the hands are hidden, so the item is held up above the head
             if (p.held) {
@@ -287,8 +298,60 @@ const Renderer = function (canvas, config, me) {
                     Sprites.draw(ctx, "star", px + Math.cos(a) * 18 - 7, py - 40 + Math.sin(a) * 5 - 7, 14);
                 }
             }
-            text(i === me ? "YOU" : p.name, px, py - (p.held && facingUp ? 50 : 44), i === 0 ? "#ff8a7a" : "#8fb0ff", 8);
+            const nameY = py - (p.held && facingUp ? 50 : 44);
+            text(i === me ? "YOU" : p.name, px, nameY, i === 0 ? "#ff8a7a" : "#8fb0ff", 8);
+            // What a click will do right now (only for my own chef; the server works it out)
+            if (i === me && p.hint && state.phase === "playing") text(p.hint, px, py + 36, "#fff", 8);
+            drawBubble(i, px, nameY - 14, now);
         });
+    };
+
+    // Emote bubble above a chef for 1.6 s (pops in, then fades)
+    const drawBubble = function (i, x, y, now) {
+        const b = bubbles[i];
+        if (!b) return;
+        // max(0, ...): the frame's timestamp can be a moment earlier than the time the emote arrived
+        const age = Math.max(0, (now - b.start) / 1600);
+        if (age >= 1) { bubbles[i] = null; return; }
+        const size = 30 * Math.min(1, age * 8);
+        ctx.globalAlpha = age > 0.75 ? (1 - age) * 4 : 1;
+        ctx.beginPath();
+        ctx.arc(x, y - 12, size * 0.62, 0, 2 * Math.PI);
+        ctx.fillStyle = "#fff"; ctx.fill();
+        ctx.lineWidth = 3; ctx.strokeStyle = "#111"; ctx.stroke();
+        ctx.font = Math.round(size * 0.72) + "px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#111";
+        ctx.fillText(b.icon, x, y - 11);
+        ctx.textBaseline = "alphabetic";
+        ctx.globalAlpha = 1;
+    };
+
+    // ---------- Particles ----------
+    // count squares fly out from (x, y) in tiles, in random directions; gravity pulls them down
+    const burst = function (x, y, colors, count, speed) {
+        for (let n = 0; n < count; n++) {
+            const a = Math.random() * 2 * Math.PI, v = (0.4 + Math.random() * 0.6) * (speed || 4);
+            particles.push({
+                x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1.5, age: 0, life: 0.35 + Math.random() * 0.3,
+                color: colors[n % colors.length], size: 3 + Math.floor(Math.random() * 4)
+            });
+        }
+    };
+
+    const drawParticles = function (dt) {
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const pt = particles[i];
+            pt.age += dt;
+            if (pt.age >= pt.life) { particles.splice(i, 1); continue; }
+            pt.vy += 9 * dt;
+            pt.x += pt.vx * dt;
+            pt.y += pt.vy * dt;
+            ctx.globalAlpha = 1 - pt.age / pt.life;
+            fill(ctx, pt.x * TS - pt.size / 2, pt.y * TS - pt.size / 2, pt.size, pt.size, pt.color);
+        }
+        ctx.globalAlpha = 1;
     };
 
     const drawProjectiles = function (now) {
@@ -330,10 +393,14 @@ const Renderer = function (canvas, config, me) {
     const drawPopups = function (now) {
         for (let i = popups.length - 1; i >= 0; i--) {
             const pop = popups[i];
-            const age = (now - pop.start) / 1300;
+            const age = Math.max(0, (now - pop.start) / 1300);
             if (age >= 1) { popups.splice(i, 1); continue; }
             ctx.globalAlpha = 1 - age * age;
-            text(pop.text, pop.x * TS, pop.y * TS - age * 36, pop.color, 14);
+            // Keep the whole label inside the canvas (e.g. "SERVED!" at the counter on the edge).
+            // The pixel font is as wide as it is tall, so half the label is 7 px per letter.
+            const half = pop.text.length * 7 + 6;
+            const px = Math.min(canvas.width - half, Math.max(half, pop.x * TS));
+            text(pop.text, px, pop.y * TS - age * 36, pop.color, 14);
             ctx.globalAlpha = 1;
         }
     };
@@ -354,6 +421,7 @@ const Renderer = function (canvas, config, me) {
             drawProjectiles(now);
             drawAim(now);
         }
+        drawParticles(dt);
         drawPopups(now);
         requestAnimationFrame(doFrame);
     };
@@ -363,6 +431,7 @@ const Renderer = function (canvas, config, me) {
     const setState = function (s) { state = s; };
     const setAim = function (point) { aimPoint = point; };
     const addPopup = function (x, y, str, color) { popups.push({ x, y, text: str, color, start: performance.now() }); };
+    const addEmote = function (i, n) { if (EMOTES[n - 1]) bubbles[i] = { icon: EMOTES[n - 1], start: performance.now() }; };
     const stop = function () { running = false; };
     const toWorld = function (pageX, pageY) {
         const offset = $(canvas).offset();
@@ -370,5 +439,5 @@ const Renderer = function (canvas, config, me) {
         return { x: (pageX - offset.left) * scale / TS, y: (pageY - offset.top) * scale / TS };
     };
 
-    return { setState, setAim, addPopup, toWorld, stop };
+    return { setState, setAim, addPopup, addBurst: burst, addEmote, toWorld, stop };
 };

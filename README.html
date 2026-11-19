@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Chef Wars: Showdown Battle - README</title>
+    <style>
+        body { font-family: system-ui, "Segoe UI", sans-serif; max-width: 820px; margin: 30px auto; padding: 0 16px; line-height: 1.55; color: #222; }
+        h1 { margin-bottom: 4px; }
+        h2 { margin-top: 28px; border-bottom: 2px solid #ddd; padding-bottom: 4px; }
+        code, pre { background: #f3f0e8; font-family: Consolas, monospace; }
+        code { padding: 1px 5px; }
+        pre { padding: 10px 14px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }
+        th { background: #f3f0e8; }
+        kbd { border: 1px solid #888; border-bottom-width: 3px; border-radius: 3px; padding: 0 5px; font-family: Consolas, monospace; background: #fff; }
+    </style>
+</head>
+<body>
+    <h1>Chef Wars: Showdown Battle</h1>
+    <p>A real-time 1v1 cooking survival game for two browsers (COMP4021 group project).</p>
+
+    <h2>1. Run it</h2>
+    <pre>npm install
+node server.js</pre>
+    <p>Then open <a href="http://localhost:8000">http://localhost:8000</a>.</p>
+    <p><b>Each player needs their own browser session</b>, because the sign-in is a cookie. Use a normal window
+        plus an incognito window, or two different browsers. Register a different account in each one.</p>
+    <p>Accounts and results are saved in <code>data/users.json</code>, which is created automatically.</p>
+
+    <h2>2. Start a game</h2>
+    <ol>
+        <li>Register (or sign in) in both windows.</li>
+        <li>Click <b>Find match</b> in both windows. The two players are paired and taken to the waiting room.</li>
+        <li>Optionally pick the starting hearts (5 to 8), then both press <b>I'm ready!</b>. The game starts after a 3-2-1 countdown.</li>
+    </ol>
+
+    <h2>3. How to play</h2>
+    <table>
+        <tr><th>Control</th><th>Action</th></tr>
+        <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</td><td>Move</td></tr>
+        <tr><td>Left click, <kbd>P</kbd> or <kbd>E</kbd></td><td>Pick up the ingredient you stand on, or pick up / put down / serve at the station you face</td></tr>
+        <tr><td>Hold right click, <kbd>R</kbd> or <kbd>O</kbd></td><td>Chop on your chopping board (about 2 seconds)</td></tr>
+        <tr><td><kbd>T</kbd> or <kbd>Q</kbd>, then left click</td><td>Aim with the mouse and throw the ingredient you hold</td></tr>
+        <tr><td><kbd>Space</kbd></td><td>Sprint for 5 seconds (then 5 seconds to recharge)</td></tr>
+        <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td>Emotes</td></tr>
+    </table>
+    <ul>
+        <li>Ingredients pop up on the floor and vanish after 8 to 10 seconds. Both chefs race for them.</li>
+        <li>Stations framed in your colour are yours (red on the left, blue on the right). The label under your chef says what a click will do.</li>
+        <li><b>Garden Salad:</b> chop lettuce and tomato, put both on a plate. <b>Tomato Soup:</b> two whole tomatoes in the pot.
+            <b>Veggie Stew:</b> chop carrot and onion, cook them in the pot. Put pot dishes on a plate, then serve at your serving counter.</li>
+        <li>Every order you miss costs the hearts shown on its card. Lose your last heart and you're knocked out.</li>
+        <li>Serve an order with more than half its bar left and your rival gets an extra rush order. Three dishes in a row give half a heart back.</li>
+        <li>Hit your rival with a thrown ingredient to stun them for 2 seconds.</li>
+        <li>Regular time is 3 minutes; the chef with more hearts wins. If hearts are level, a Sudden Death Dish (up to 1 minute) decides it.
+            A game therefore lasts at most 4 minutes.</li>
+    </ul>
+
+    <h2>4. Cheat mode</h2>
+    <ul>
+        <li><b>On:</b> click the <b>Cheat</b> button above the kitchen (or type <kbd>W</kbd> <kbd>S</kbd> <kbd>W</kbd> <kbd>S</kbd> <kbd>A</kbd> <kbd>D</kbd> <kbd>A</kbd> <kbd>D</kbd>).</li>
+        <li><b>Off:</b> click the <b>Cheat</b> button again. It also turns off by itself after 15 seconds, then needs 15 seconds to recharge.</li>
+        <li><b>While it's on:</b> chopping and cooking are instant, and every dish you serve takes that dish's hearts off your rival,
+            so you can knock them out quickly.</li>
+    </ul>
+
+    <h2>5. Shorter rounds for testing (optional)</h2>
+    <p>The round length can be changed with an environment variable, for example a 60-second round:</p>
+    <pre>set GAME_TIME=60 &amp;&amp; node server.js      (Windows cmd)
+GAME_TIME=60 node server.js            (macOS / Linux)</pre>
+
+    <p>More detail (rules, file list, lecture topics used) is in <code>README.md</code>.</p>
+</body>
+</html>

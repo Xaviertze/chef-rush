@@ -12,12 +12,16 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 const RATE = 22050;                                        // samples per second
 
 // ---------- Building blocks ----------
+// A seeded random number generator, so the noise (and so every file) is the same each time this runs
+let seed = 4021;
+const random = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12);       // MIDI note number -> frequency
 const waves = {
     sine: (p) => Math.sin(2 * Math.PI * p),
     square: (p) => (p % 1 < 0.5 ? 1 : -1),
     triangle: (p) => 1 - 4 * Math.abs((p % 1) - 0.5),
-    noise: () => Math.random() * 2 - 1
+    noise: () => random() * 2 - 1
 };
 
 // One sound: frequency can change over time (from -> to); volume fades with a quick attack and a decay
@@ -76,10 +80,18 @@ const SOUNDS = {
     boost: () => notes([79, 84], 0.07, { wave: "triangle", vol: 0.3 }),
     count: () => tone({ from: NOTE(69), dur: 0.15, vol: 0.3 }),
     go: () => tone({ from: NOTE(81), dur: 0.4, vol: 0.3, release: 0.5 }),
+    speedup: () => notes([67, 72, 76, 79, 84], 0.07, { wave: "square", vol: 0.25, release: 0.3 }),
     overtime: () => join(...[0, 1, 2].map(() => join(tone({ from: 880, dur: 0.14, vol: 0.3 }), tone({ from: 660, dur: 0.14, vol: 0.3 })))),
     ko: () => join(tone({ from: 600, to: 80, dur: 0.6, vol: 0.35 }), mix(tone({ from: 90, to: 50, dur: 0.3, wave: "sine", vol: 0.6 }), tone({ from: 800, dur: 0.15, wave: "noise", vol: 0.3 }))),
     win: () => notes([72, 76, 79, 84, null, 79, 84], 0.13, { vol: 0.3, release: 0.3 }),
-    lose: () => notes([72, 67, 64, 60], 0.22, { wave: "triangle", vol: 0.35, release: 0.5 })
+    lose: () => notes([72, 67, 64, 60], 0.22, { wave: "triangle", vol: 0.35, release: 0.5 }),
+    ding: () => notes([88, 93], 0.12, { wave: "sine", vol: 0.45, release: 0.7 }),            // pot finished
+    alarm: () => tone({ from: 990, dur: 0.09, vol: 0.28, release: 0.3 }),                     // pot about to burn (repeats faster and faster)
+    tick: () => tone({ from: 1400, to: 1100, dur: 0.05, wave: "triangle", vol: 0.4 }),        // an order is about to run out
+    rush: () => notes([81, 76, 81, 76], 0.07, { vol: 0.28, release: 0.3 }),                   // a rush order arrives
+    heal: () => notes([76, 81, 88], 0.09, { wave: "sine", vol: 0.45, release: 0.5 }),         // streak: half a heart back
+    land: () => tone({ from: 500, to: 1300, dur: 0.14, wave: "sine", vol: 0.4 }),             // throw landed on your board / pot
+    emote: () => tone({ from: 700, to: 1000, dur: 0.07, wave: "triangle", vol: 0.35 })
 };
 
 // Background music: a cheerful 8-bar loop (bass + melody) at 140 beats per minute

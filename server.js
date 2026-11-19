@@ -46,8 +46,8 @@ const hashPassword = function (password, salt) {
     return crypto.scryptSync(password, salt, 64).toString("hex");
 };
 
-// bestServed = most dishes served in one game (the "best score" on the dashboard)
-const newStats = () => ({ games: 0, wins: 0, losses: 0, draws: 0, bestServed: 0, served: 0, grabbed: 0, missed: 0, hits: 0 });
+// bestHearts = most hearts left at the end of a game (shown on the dashboard); bestServed = most dishes in one game
+const newStats = () => ({ games: 0, wins: 0, losses: 0, draws: 0, bestHearts: 0, bestServed: 0, served: 0, grabbed: 0, missed: 0, hits: 0 });
 
 // The same rules are checked in the browser, but the server is the one that counts
 const checkRegistration = function ({ username, name, password, confirm }) {
@@ -127,7 +127,7 @@ app.get("/ranking", (req, res) => {
         const u = users[k];
         return Object.assign({ username: u.username, name: u.name }, newStats(), u.stats);
     });
-    list.sort((a, b) => b.wins - a.wins || (b.wins / (b.games || 1)) - (a.wins / (a.games || 1)) || b.bestServed - a.bestServed);
+    list.sort((a, b) => b.wins - a.wins || (b.wins / (b.games || 1)) - (a.wins / (a.games || 1)) || b.bestHearts - a.bestHearts);
     res.json(list);
 });
 
@@ -178,6 +178,7 @@ const recordResults = function (game) {
         else if (game.winner === i) s.wins++;
         else s.losses++;
         s.bestServed = Math.max(s.bestServed, p.served);
+        s.bestHearts = Math.max(s.bestHearts, p.hearts);
         s.served += p.served;
         s.grabbed += p.grabbed;
         s.missed += p.missed;
@@ -241,8 +242,16 @@ const leaveGame = function (socket) {
     if (!game) return;
     socket.leave(game.room);
     socket.data.game = null;
-    if (game.phase !== "over") socket.to(game.room).emit("opponent left", game.players[socket.data.index].name);
     game.left = (game.left || 0) + 1;
+    // Leaving in the middle of a round is a forfeit: the chef who stayed wins, sees the game over page,
+    // and the result is saved (so quitting can't be used to dodge a loss)
+    if (Game.forfeit(game, socket.data.index)) {
+        broadcastState(game);                   // only the chef who stayed is still in the room
+        recordResults(game);
+        endGame(game);
+        return;
+    }
+    if (game.phase !== "over") socket.to(game.room).emit("opponent left", game.players[socket.data.index].name);
     if (game.phase !== "over" || game.left >= 2) endGame(game);
 };
 
@@ -284,10 +293,10 @@ io.on("connection", (socket) => {
     socket.on("input", withGame((g, i, data) => { try { Game.setInput(g, i, JSON.parse(data)); } catch (e) { /* ignore */ } }));
     socket.on("pick", withGame((g, i) => Game.pick(g, i)));
     socket.on("throw", withGame((g, i, data) => { try { Game.throwItem(g, i, Number(JSON.parse(data).angle)); } catch (e) { /* ignore */ } }));
-    socket.on("cheat", withGame((g, i) => Game.toggleCheat(g, i)));        // the cheat button
+    socket.on("cheat", withGame((g, i) => Game.toggleCheat(g, i)));        // the Cheat button: on / off
     socket.on("cheat on", withGame((g, i) => Game.cheatOn(g, i)));         // key combination W S W S A D A D
-    socket.on("cheat off", withGame((g, i) => Game.cheatOff(g, i)));       // C
     socket.on("sprint", withGame((g, i) => Game.sprint(g, i)));
+    socket.on("emote", withGame((g, i, n) => Game.emote(g, i, Number(n))));  // keys 1-4
 
     socket.on("disconnect", () => {
         leaveQueue(socket);

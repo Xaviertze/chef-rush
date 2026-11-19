@@ -40,8 +40,8 @@ const Socket = (function () {
         throwAt: (angle) => emit("throw", JSON.stringify({ angle })),
         cheat: () => emit("cheat"),                 // cheat button: on / off
         cheatOn: () => emit("cheat on"),            // secret key combination
-        cheatOff: () => emit("cheat off"),          // C
         setHearts: (n) => emit("hearts", n),        // waiting room: starting hearts
-        sprint: () => emit("sprint")
+        sprint: () => emit("sprint"),
+        emote: (n) => emit("emote", n)              // keys 1-4
     };
 })();

@@ -87,20 +87,29 @@
                 <h3>Controls</h3>
                 <ul class="controls">
                     <li><span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>or arrow keys to move</span></li>
-                    <li><span class="keys"><kbd>Left click</kbd></span><span>Pick up / put down / serve (or P)</span></li>
-                    <li><span class="keys"><kbd>Right click</kbd></span><span>Hold about 2 s to chop (or hold O)</span></li>
-                    <li><span class="keys"><kbd>T</kbd></span><span>Aim with the mouse, left click to throw (T again or Esc cancels)</span></li>
-                    <li><span class="keys"><kbd>Space</kbd></span><span>Sprint: 1.6x speed for 5 s, then 10 s to recharge</span></li>
+                    <li><span class="keys"><kbd>Left click</kbd></span><span>Pick up / put down / serve (or P / E)</span></li>
+                    <li><span class="keys"><kbd>Right click</kbd></span><span>Hold about 2 s to chop (or hold R / O)</span></li>
+                    <li><span class="keys"><kbd>T</kbd><kbd>Q</kbd></span><span>Aim with the mouse, left click to throw (T / Q again or Esc cancels)</span></li>
+                    <li><span class="keys"><kbd>Space</kbd></span><span>Sprint: 1.6x speed for 5 s, then 5 s to recharge</span></li>
+                    <li><span class="keys"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd></span><span>Emotes: 👍 😂 😡 🔥 pop up above your chef</span></li>
                 </ul>
                 <h3>Hearts and orders</h3>
                 <ul class="rules">
                     <li>Both chefs start with the same number of <b>hearts</b> (5 to 8, picked in the waiting room).</li>
-                    <li>Ingredients pop up on the floor and <b>vanish after 8-10 s</b>. Walk over one and left click (or press P).</li>
+                    <li>Ingredients pop up on the floor and <b>vanish after 8-10 s</b>. Walk over one and left click (or press P / E).</li>
                     <li>Chop on <b>your</b> board, cook in <b>your</b> pot, plate it, and serve at <b>your</b> counter (stations in your colour).</li>
                     <li>Serve an order before its bar runs out to clear it and get a <b>speed boost</b> (1.3x for 3 s).
                         If the bar runs out, you <b>lose the hearts shown on the order</b>.</li>
-                    <li>A finished pot burns if you leave it for 10 s.</li>
-                    <li>Hit your rival with a thrown ingredient: they're stunned for 2 s and drop what they carry.</li>
+                    <li><b>Rush orders:</b> serve an order while <b>more than half</b> of its bar is left and your rival gets an
+                        extra order on top of their own. Cook fast to bury them in orders!</li>
+                    <li><b>Streak:</b> every <b>3 dishes in a row</b> without a missed order gives you <b>½ heart back</b>
+                        (never more than you started with).</li>
+                    <li><b>Orders speed up</b> every minute: new orders arrive more often and their bars get shorter.</li>
+                    <li>A finished pot rings, then beeps faster and faster, and burns if you leave it for 10 s.</li>
+                    <li>Hit your rival with a thrown ingredient: they're stunned for 2 s and drop what they carry
+                        (then they can't be stunned again for 1 s).</li>
+                    <li>Throw an ingredient at <b>your own</b> empty chopping board or your pot and it lands right on it.</li>
+                    <li>The label under your chef says what a click will do right now.</li>
                 </ul>
                 <div class="menu">
                     <figure><img src="img/icons/salad.svg" alt=""><figcaption><b>Garden Salad</b> <span class="cost">½♥</span><br>chop lettuce + tomato</figcaption></figure>
@@ -111,9 +120,10 @@
                 <ul class="rules">
                     <li><b>Last chef standing:</b> lose your last heart and you're knocked out. Your rival wins straight away.</li>
                     <li><b>Time up:</b> regular time is <span class="round-length">3 minutes</span>. Then the chef with more hearts wins (half hearts count, so 4½ beats 4).</li>
-                    <li><b>Sudden Death Dish:</b> if hearts are level, both chefs get the same random dish. The first to serve it wins.
-                        Nobody serves it within <span class="overtime-length">1 minute</span>? It's a draw.</li>
+                    <li><b>Sudden Death Dish:</b> if hearts are level, the kitchen is cleared and both chefs get the same random dish.
+                        The first to serve it wins. Nobody serves it within <span class="overtime-length">1 minute</span>? It's a draw.</li>
                     <li>Both chefs lose their last heart at the same moment? It's a draw.</li>
+                    <li>A chef who leaves in the middle of a round loses it: the chef who stayed wins.</li>
                 </ul>
             </section>
 
@@ -153,6 +163,7 @@
                     <span id="ready-opponent" class="ready-state">Not ready</span>
                 </div>
             </div>
+            <div class="room-setup">
             <div class="hearts-pick">
                 <h3>Starting hearts</h3>
                 <div id="hearts-options" class="hearts-options">
@@ -160,6 +171,17 @@
                     <button data-hearts="7">7</button><button data-hearts="8">8</button>
                 </div>
                 <p class="muted">Either chef can change it. Both chefs see it, and changing it turns off both Ready.</p>
+            </div>
+            <!-- Tonight's menu, so both chefs know the recipes before the round starts -->
+            <div class="room-menu">
+                <h3>Tonight's menu</h3>
+                <div class="menu">
+                    <figure><img src="img/icons/salad.svg" alt=""><figcaption><b>Garden Salad</b> <span class="cost">½♥</span><br>chop lettuce + tomato, plate both</figcaption></figure>
+                    <figure><img src="img/icons/tomato-soup.svg" alt=""><figcaption><b>Tomato Soup</b> <span class="cost">½♥</span><br>2 whole tomatoes in the pot</figcaption></figure>
+                    <figure><img src="img/icons/veggie-stew.svg" alt=""><figcaption><b>Veggie Stew</b> <span class="cost">1♥</span><br>chop carrot + onion, cook in the pot</figcaption></figure>
+                </div>
+                <p class="muted">Serve fast to send your rival rush orders. 3 dishes in a row gives ½♥ back.</p>
+            </div>
             </div>
             <button id="ready-btn" class="big-btn">I'm ready!</button>
             <p id="room-hint" class="muted">The game starts when both chefs are ready.</p>
@@ -176,6 +198,7 @@
                     <span class="hud-name" id="name-0"></span>
                     <span class="cheat-badge hidden" id="cheat-0">CHEAT</span>
                     <div class="hearts" id="hearts-0"></div>
+                    <div class="streak" id="streak-0"></div>
                 </div>
                 <div class="orders" id="orders-0"></div>
             </div>
@@ -195,21 +218,24 @@
                     <span class="hud-name" id="name-1"></span>
                     <span class="cheat-badge hidden" id="cheat-1">CHEAT</span>
                     <div class="hearts" id="hearts-1"></div>
+                    <div class="streak" id="streak-1"></div>
                 </div>
                 <div class="orders" id="orders-1"></div>
             </div>
         </header>
         <div class="stage">
             <canvas id="kitchen" width="912" height="528"></canvas>
+            <div id="low-hearts" class="low-hearts hidden"></div>
             <div id="countdown" class="countdown hidden"><span id="count-num">3</span></div>
             <div id="toast" class="toast"></div>
         </div>
         <footer class="key-strip">
             <span><kbd>WASD</kbd>/<kbd>←↑↓→</kbd> move</span>
-            <span><kbd>Left click</kbd>/<kbd>P</kbd> pick / drop / serve</span>
-            <span><kbd>Right click</kbd>/<kbd>O</kbd> hold to chop</span>
-            <span><kbd>T</kbd> aim, click throw, <kbd>T</kbd>/<kbd>Esc</kbd> cancel</span>
+            <span><kbd>Left click</kbd>/<kbd>P</kbd>/<kbd>E</kbd> pick / drop / serve</span>
+            <span><kbd>Right click</kbd>/<kbd>R</kbd>/<kbd>O</kbd> hold to chop</span>
+            <span><kbd>T</kbd>/<kbd>Q</kbd> aim, click to throw</span>
             <span><kbd>Space</kbd> sprint</span>
+            <span><kbd>1</kbd>-<kbd>4</kbd> emote</span>
         </footer>
     </main>
 
@@ -249,10 +275,18 @@
         <audio id="snd-boost" src="sounds/boost.wav" preload="auto"></audio>
         <audio id="snd-count" src="sounds/count.wav" preload="auto"></audio>
         <audio id="snd-go" src="sounds/go.wav" preload="auto"></audio>
+        <audio id="snd-speedup" src="sounds/speedup.wav" preload="auto"></audio>
         <audio id="snd-overtime" src="sounds/overtime.wav" preload="auto"></audio>
         <audio id="snd-ko" src="sounds/ko.wav" preload="auto"></audio>
         <audio id="snd-win" src="sounds/win.wav" preload="auto"></audio>
         <audio id="snd-lose" src="sounds/lose.wav" preload="auto"></audio>
+        <audio id="snd-ding" src="sounds/ding.wav" preload="auto"></audio>
+        <audio id="snd-alarm" src="sounds/alarm.wav" preload="auto"></audio>
+        <audio id="snd-tick" src="sounds/tick.wav" preload="auto"></audio>
+        <audio id="snd-rush" src="sounds/rush.wav" preload="auto"></audio>
+        <audio id="snd-heal" src="sounds/heal.wav" preload="auto"></audio>
+        <audio id="snd-land" src="sounds/land.wav" preload="auto"></audio>
+        <audio id="snd-emote" src="sounds/emote.wav" preload="auto"></audio>
     </div>
 
     <script src="js/sound.js"></script>

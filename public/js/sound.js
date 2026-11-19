@@ -24,11 +24,19 @@ const Sound = (function () {
         if (!el) return;
         el.volume = 0.35;
         el.currentTime = 0;
+        el.playbackRate = 1;
         if (!muted) el.play().catch(() => { /* blocked until the player clicks */ });
     };
     const stopMusic = function () {
         const el = element("music");
         if (el) el.pause();
+    };
+
+    // The music gets faster as the round heats up (1 = normal speed).
+    // Outside the slides: the playbackRate property of an <audio> element.
+    const setMusicRate = function (rate) {
+        const el = element("music");
+        if (el && el.playbackRate !== rate) el.playbackRate = rate;
     };
 
     const setMuted = function (on) {
@@ -48,5 +56,5 @@ const Sound = (function () {
         });
     };
 
-    return { init, play, startMusic, stopMusic, isMuted: () => muted };
+    return { init, play, startMusic, stopMusic, setMusicRate, isMuted: () => muted };
 })();

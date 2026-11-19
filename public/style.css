@@ -332,6 +332,41 @@ body[data-page="game"] .page { max-width: 1400px; padding: 8px 12px; }
 .clock.overtime { color: var(--gold); }
 .overtime-label { font-family: var(--pixel); font-size: 0.55rem; color: #fff; background: var(--red); padding: 3px 6px; animation: blink 0.8s steps(2) infinite; }
 
+/* ---------- Streak, rush orders, last-heart warning, end banner, waiting room menu ---------- */
+/* Streak row under the hearts: three pips that fill up, then give half a heart back */
+.streak { order: 2; width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px;
+    font-family: var(--pixel); font-size: 0.5rem; color: var(--muted); animation-duration: 0.4s; }
+.streak i { width: 12px; height: 12px; border: 2px solid var(--ink); background: #fff; }
+.streak i.on { background: var(--gold); }
+.streak span:last-child { color: var(--red); }
+
+.order.rush { border-color: #c13ad6; box-shadow: 0 0 0 2px #c13ad6; }
+.order.rush .order-name { color: #8a1f9c; }
+
+/* Red pulse over the kitchen while I have one heart or less (clicks pass through it) */
+.low-hearts { position: absolute; inset: 0; pointer-events: none; animation: danger-pulse 0.9s ease-in-out infinite; }
+@keyframes danger-pulse {
+    0%, 100% { box-shadow: inset 0 0 0 0 rgba(255, 40, 30, 0); }
+    50% { box-shadow: inset 0 0 70px 14px rgba(255, 40, 30, 0.55); }
+}
+
+/* "K.O.!" / "TIME'S UP!" over the kitchen when the round ends */
+.countdown.banner { background: rgba(0, 0, 0, 0.45); }
+.countdown.banner #count-num { font-size: clamp(1.6rem, 5vw, 3.2rem); color: #fff; text-shadow: 5px 5px 0 var(--red), 9px 9px 0 var(--ink); }
+
+/* Waiting room: starting hearts on the left, the menu on the right, so the page fits 1280x720 without scrolling */
+body[data-page="room"] .page { padding: 10px 16px; }
+.room-card { max-width: 900px; margin-top: 10px; margin-bottom: 10px; }
+.room-setup { display: grid; grid-template-columns: 1fr 1.5fr; gap: 18px; align-items: start; margin-bottom: 16px; }
+.room-setup .hearts-pick { margin: 0; }
+.room-menu { padding-left: 18px; border-left: 3px dashed #e2cfa6; }
+.room-menu h3 { margin: 0; }
+.room-menu .muted { font-size: 0.85rem; margin: 8px 0 0; }
+@media (max-width: 820px) {
+    .room-setup { grid-template-columns: 1fr; }
+    .room-menu { padding-left: 0; border-left: none; }
+}
+
 @media (max-width: 1000px) {
     #page-game {
         grid-template-columns: 1fr 1fr;

@@ -15,21 +15,28 @@ const SETTINGS = {
     countdown: 3,
     speed: 4.2,                                        // tiles per second
     radius: 0.3,
-    chopTime: 2,                                       // hold right click (or O) for about 2 seconds
+    chopTime: 2,                                       // hold right click (or R / O) for about 2 seconds
     burnTime: 10,                                      // a finished pot burns after this long
     stunTime: 2,
     throwSpeed: 11,
     throwRange: 8,
-    orderTime: 60,
-    orderGap: 15,
+    orderTime: 60,                                     // first minute: 60 s to serve an order...
+    orderGap: 15,                                      // ...and a new one every 15 s
+    paceEvery: 60,                                     // every minute orders speed up:
+    orderTimeDrop: 8, orderGapDrop: 3,                 // 8 s less to serve, 3 s less between orders
+    minOrderTime: 36, minOrderGap: 6,
     minOrders: 2,
     maxOrders: 4,
     spawnMin: 1.2, spawnMax: 2.2,                      // seconds between ingredient spawns
     lifeMin: 8, lifeMax: 10,                           // spawned ingredients vanish after 8-10 s
     dropLife: 10,                                      // dropped ingredients also vanish (plates stay)
     maxFloor: 10,
-    cheatTime: 15, cheatCooldown: 30,                  // C: cheat lasts 15 s, then 30 s before it can be used again
-    sprintTime: 5, sprintCooldown: 10, sprintBoost: 1.6  // Space: run 1.6x faster for 5 s, then 10 s to recharge
+    cheatTime: 15, cheatCooldown: 15,                  // cheat lasts 15 s, then 15 s before it can be used again
+    sprintTime: 5, sprintCooldown: 5, sprintBoost: 1.6,  // Space: run 1.6x faster for 5 s, then 5 s to recharge
+    rushFraction: 0.5,                                 // serve with more than half the bar left: your rival gets a rush order
+    streakHeal: 3, healAmount: 0.5,                    // every 3 dishes in a row without a miss: +½ heart
+    immuneTime: 1,                                     // after a stun ends, 1 s where throws can't stun you again
+    emoteGap: 1                                        // seconds between two emotes
 };
 
 // items = what must be on the plate; pot = what goes in the pot (name, state)
@@ -113,6 +120,8 @@ const resetPlayer = function (p, hearts) {
         input: { up: false, down: false, left: false, right: false, chop: false },
         stunUntil: 0, hearts, knockedOut: false, orders: [], nextOrder: 0, orderTimer: 0,
         served: 0, grabbed: 0, missed: 0, hits: 0,
+        streak: 0, bestStreak: 0, rushes: 0,            // dishes in a row without a miss, rush orders sent to the rival
+        immuneUntil: 0, emoteAt: 0,
         cheat: false, chopping: false, moving: false, chopPressed: false,
         cheatUntil: 0, cheatReadyAt: 0,                 // game.clock times for the cheat skill
         sprintUntil: 0, sprintReadyAt: 0,               // ... for the sprint skill
@@ -124,9 +133,10 @@ const resetPlayer = function (p, hearts) {
 const createGame = function (room, users) {
     const game = {
         room, phase: "lobby", ready: [false, false], winner: null, endReason: null,
-        hearts: SETTINGS.heartsStart, overtime: false, suddenDish: null, suddenWinner: null,
+        hearts: SETTINGS.heartsStart, overtime: false, pace: 0, suddenDish: null, suddenWinner: null,
         clock: 0, timeLeft: SETTINGS.gameTime, countdown: 0,
-        tiles: {}, floor: [], projectiles: [], events: [], nextId: 1, sequence: [], spawnTimer: 0
+        tiles: {}, floor: [], projectiles: [], events: [], nextId: 1, sequence: [], spawnTimer: 0,
+        spawnSide: 0                                    // which half of the kitchen the next ingredient appears in
     };
     game.players = users.map(function (u, i) {
         const p = { index: i, username: u.username, name: u.name };
@@ -165,6 +175,7 @@ const startRound = function (game) {
     game.winner = null;
     game.endReason = null;
     game.overtime = false;
+    game.pace = 0;
     game.suddenDish = null;
     game.suddenWinner = null;
     game.sequence = makeSequence(100);
@@ -277,7 +288,13 @@ const spawnIngredient = function (game) {
         return true;
     });
     if (free.length === 0) return;
-    const t = free[Math.floor(Math.random() * free.length)];
+    // Take turns between the left and right half, so neither chef is starved of ingredients
+    // (the middle column counts for both). No free tile on that half: anywhere will do.
+    const mid = (COLS - 1) / 2;
+    const half = free.filter((t) => t.x === mid || (t.x < mid ? 0 : 1) === game.spawnSide);
+    const pool = half.length ? half : free;
+    game.spawnSide = 1 - game.spawnSide;
+    const t = pool[Math.floor(Math.random() * pool.length)];
     game.floor.push({
         id: game.nextId++, x: t.x + 0.5, y: t.y + 0.5, item: newIngredient(pickIngredient(game)),
         born: game.clock, life: rand(SETTINGS.lifeMin, SETTINGS.lifeMax), spawned: true
@@ -315,11 +332,12 @@ const potMessage = function (ing) {
     return "That doesn't go with what's in the pot";
 };
 
-const addToPot = function (game, p, pot, ing) {
-    if (pot.state !== "filling") { say(game, p, pot.state === "cooking" ? "The pot is cooking" : "Empty the pot first"); return false; }
+// Puts the ingredient in the pot if it fits a recipe (used by hand and by a thrown ingredient)
+const fillPot = function (pot, ing) {
+    if (pot.state !== "filling") return false;
     const items = pot.items.concat([{ name: ing.name, state: ing.state }]);
     const check = potRecipeFor(items);
-    if (!check.possible) { say(game, p, potMessage(ing)); return false; }
+    if (!check.possible) return false;
     pot.items = items;
     if (check.exact) {
         pot.state = "cooking";
@@ -327,6 +345,12 @@ const addToPot = function (game, p, pot, ing) {
         pot.cook = 0;
         pot.burn = 0;
     }
+    return true;
+};
+
+const addToPot = function (game, p, pot, ing) {
+    if (pot.state !== "filling") { say(game, p, pot.state === "cooking" ? "The pot is cooking" : "Empty the pot first"); return false; }
+    if (!fillPot(pot, ing)) { say(game, p, potMessage(ing)); return false; }
     return true;
 };
 
@@ -404,6 +428,8 @@ const serve = function (game, p, t) {
     p.held = null;
     const order = p.orders.splice(idx, 1)[0];
     p.served++;
+    p.streak++;
+    p.bestStreak = Math.max(p.bestStreak, p.streak);
     p.boostUntil = game.clock + SETTINGS.boostTime;               // reward: a short speed boost
     event(game, { kind: "serve", to: p.index, x, y, text: "SERVED!", order: order.id });
 
@@ -411,8 +437,19 @@ const serve = function (game, p, t) {
         if (game.suddenWinner === null) game.suddenWinner = p.index;
         return;
     }
+    const rival = game.players[1 - p.index];
+    // Fast serve (more than half the bar left): the rival gets an extra "rush" order on top of their own
+    if (order.timeLeft > order.total * SETTINGS.rushFraction && rival.orders.length < SETTINGS.maxOrders) {
+        addOrder(game, rival, true);
+        p.rushes++;
+        event(game, { kind: "rush", to: rival.index, x: rival.x, y: rival.y - 1, text: "RUSH ORDER!", from: p.name });
+    }
+    // Every 3rd dish in a row without a missed order gives ½ heart back (never above the starting hearts)
+    if (p.streak % SETTINGS.streakHeal === 0 && p.hearts < game.hearts) {
+        p.hearts = Math.min(game.hearts, p.hearts + SETTINGS.healAmount);
+        event(game, { kind: "heal", to: p.index, x: p.x, y: p.y - 1.4, text: "+" + heartText(SETTINGS.healAmount) });
+    }
     if (p.cheat) {                                                // cheat: the dish hurts your rival
-        const rival = game.players[1 - p.index];
         const damage = RECIPES[order.recipe].hearts;
         rival.hearts = Math.max(0, rival.hearts - damage);
         event(game, { kind: "cheathit", to: rival.index, x: rival.x, y: rival.y - 1, text: "-" + heartText(damage) });
@@ -474,7 +511,7 @@ const pick = function (game, index) {
     else putDown(game, p, t, ch, k);
 };
 
-// ---------- T: throw (a hit stuns the rival and makes them drop what they carry) ----------
+// ---------- T / Q + click: throw (a hit stuns the rival and makes them drop what they carry) ----------
 const throwItem = function (game, index, angle) {
     const p = game.players[index];
     if (!p || game.phase !== "playing" || isStunned(game, p)) return;
@@ -494,8 +531,8 @@ const throwItem = function (game, index, angle) {
     event(game, { kind: "throw", to: index });
 };
 
-// ---------- Cheat skill: 15 s on, then 30 s cooldown ----------
-// Turned on by the key combination (W S W S A D A D) or the cheat button; C (or the button) ends it early.
+// ---------- Cheat skill: 15 s on, then 15 s to recharge ----------
+// Turned on by the key combination (W S W S A D A D) or the Cheat button; the button ends it early.
 const endCheat = function (game, p) {
     p.cheat = false;
     p.cheatReadyAt = game.clock + SETTINGS.cheatCooldown;
@@ -526,7 +563,7 @@ const toggleCheat = function (game, index) {                       // the on-scr
     else cheatOn(game, index);
 };
 
-// ---------- Space: sprint skill (run faster for 5 s, then 10 s cooldown) ----------
+// ---------- Space: sprint skill (run faster for 5 s, then 5 s to recharge) ----------
 const isSprinting = (game, p) => game.clock < p.sprintUntil;
 
 const sprint = function (game, index) {
@@ -540,6 +577,14 @@ const sprint = function (game, index) {
     p.sprintUntil = game.clock + SETTINGS.sprintTime;
     p.sprintReadyAt = p.sprintUntil + SETTINGS.sprintCooldown;
     event(game, { kind: "sprint", to: index, x: p.x, y: p.y - 1, text: "SPRINT!" });
+};
+
+// Keys 1-4: a little emote bubble above your chef (both chefs see it)
+const emote = function (game, index, n) {
+    const p = game.players[index];
+    if (!p || game.phase !== "playing" || [1, 2, 3, 4].indexOf(n) < 0 || game.clock < p.emoteAt) return;
+    p.emoteAt = game.clock + SETTINGS.emoteGap;
+    event(game, { kind: "emote", to: index, n });
 };
 
 const setInput = function (game, index, input) {
@@ -604,7 +649,10 @@ const updatePots = function (game, dt) {
         if (pot.state === "cooking") {
             const need = RECIPES[pot.dish].cookTime;
             pot.cook = owner.cheat ? need : pot.cook + dt;                // cheat: instant cooking
-            if (pot.cook >= need) { pot.cook = need; pot.state = "done"; pot.burn = 0; }
+            if (pot.cook >= need) {
+                pot.cook = need; pot.state = "done"; pot.burn = 0;
+                event(game, { kind: "potdone", to: owner.index, x: x + 0.5, y: y + 0.6, text: "READY!" });
+            }
         } else if (pot.state === "done") {
             pot.burn += dt;
             if (pot.burn >= SETTINGS.burnTime) {
@@ -615,13 +663,24 @@ const updatePots = function (game, dt) {
     });
 };
 
+// A thrown ingredient that reaches the thrower's own empty chopping board, or their pot when it fits
+// the recipe, lands there instead of falling on the floor
+const landOnStation = function (game, pr, ch, x, y) {
+    if (sideOfX(x) !== pr.owner) return false;
+    const k = keyOf(x, y);
+    if (ch === "K" && !game.tiles[k]) game.tiles[k] = pr.item;
+    else if (ch !== "P" || !fillPot(game.tiles[k], pr.item)) return false;
+    event(game, { kind: "land", to: pr.owner, x: x + 0.5, y: y + 0.6, text: "NICE THROW!" });
+    return true;
+};
+
 const stepProjectile = function (game, pr, dt) {
     const steps = 4, sdt = dt / steps;
     for (let i = 0; i < steps; i++) {
         const nx = pr.x + pr.vx * sdt, ny = pr.y + pr.vy * sdt;
         const ch = tileAt(Math.floor(nx), Math.floor(ny));
         if (ch !== "." && ch !== "C") {                         // walls and stations stop it; it flies over counters
-            dropOnFloor(game, pr.item, pr.lastFloor.x, pr.lastFloor.y);
+            if (!landOnStation(game, pr, ch, Math.floor(nx), Math.floor(ny))) dropOnFloor(game, pr.item, pr.lastFloor.x, pr.lastFloor.y);
             return false;
         }
         pr.x = nx; pr.y = ny;
@@ -629,8 +688,10 @@ const stepProjectile = function (game, pr, dt) {
         if (ch === ".") pr.lastFloor = { x: nx, y: ny };
 
         const target = game.players[1 - pr.owner];
-        if (Math.hypot(target.x - pr.x, target.y - pr.y) < 0.5) {
+        // A chef who is stunned (or was a moment ago) can't be stunned again: the throw flies past
+        if (game.clock >= target.immuneUntil && Math.hypot(target.x - pr.x, target.y - pr.y) < 0.5) {
             target.stunUntil = game.clock + SETTINGS.stunTime;
+            target.immuneUntil = target.stunUntil + SETTINGS.immuneTime;
             game.players[pr.owner].hits++;
             if (target.held) {                                  // bump: they drop what they carry
                 dropOnFloor(game, target.held, target.x + 0.4, target.y + 0.2);
@@ -650,11 +711,18 @@ const stepProjectile = function (game, pr, dt) {
     return true;
 };
 
-const addOrder = function (game, p) {
+// Orders speed up every minute: level 0 for the first minute, 1 for the second, ...
+const paceLevel = (game) => Math.floor(game.clock / SETTINGS.paceEvery);
+const orderTimeNow = (game) => Math.max(SETTINGS.minOrderTime, SETTINGS.orderTime - SETTINGS.orderTimeDrop * paceLevel(game));
+const orderGapNow = (game) => Math.max(SETTINGS.minOrderGap, SETTINGS.orderGap - SETTINGS.orderGapDrop * paceLevel(game));
+
+// rush = an extra order sent by the rival's fast serve; it doesn't delay the chef's own next order
+const addOrder = function (game, p, rush) {
     const recipe = game.sequence[p.nextOrder % game.sequence.length];
     p.nextOrder++;
-    p.orders.push({ id: game.nextId++, recipe, timeLeft: SETTINGS.orderTime, total: SETTINGS.orderTime });
-    p.orderTimer = 0;
+    const time = orderTimeNow(game);
+    p.orders.push({ id: game.nextId++, recipe, timeLeft: time, total: time, rush: !!rush });
+    if (!rush) p.orderTimer = 0;
 };
 
 const updateOrders = function (game, p, dt) {
@@ -663,13 +731,14 @@ const updateOrders = function (game, p, dt) {
     p.orders.filter((o) => o.timeLeft <= 0).forEach(function (o) {
         const damage = RECIPES[o.recipe].hearts;                 // a missed order costs its hearts
         p.missed++;
+        p.streak = 0;                                            // a miss breaks the serving streak
         p.hearts = Math.max(0, p.hearts - damage);
         event(game, { kind: "expire", to: p.index, x: p.x, y: p.y - 1, text: "-" + heartText(damage), order: o.id });
     });
     p.orders = p.orders.filter((o) => o.timeLeft > 0);
     p.orderTimer += dt;
     if (p.orders.length < SETTINGS.maxOrders &&
-        (p.orderTimer >= SETTINGS.orderGap || p.orders.length < SETTINGS.minOrders)) {
+        (p.orderTimer >= orderGapNow(game) || p.orders.length < SETTINGS.minOrders)) {
         addOrder(game, p);
     }
 };
@@ -682,13 +751,22 @@ const startOvertime = function (game) {
     game.suddenDish = recipe;
     game.suddenWinner = null;
     game.timeLeft = SETTINGS.overtime;
+    // Everyone starts the Sudden Death Dish from nothing: pots, counters, floor and hands are cleared,
+    // so a dish that happened to be cooking already can't win it instantly
+    game.tiles = {};
+    POT_TILES.forEach((k) => { game.tiles[k] = newPot(); });
+    game.floor = [];
+    game.projectiles = [];
+    for (let i = 0; i < 4; i++) spawnIngredient(game);
     game.players.forEach(function (p) {
+        p.held = null;
         p.orders = [{ id: game.nextId++, recipe, timeLeft: SETTINGS.overtime, total: SETTINGS.overtime, sudden: true }];
     });
     event(game, { kind: "overtime", to: -1, x: COLS / 2, y: ROWS / 2 - 1, text: "SUDDEN DEATH DISH!", recipe });
 };
 
-// reason: "ko" (ran out of hearts), "double-ko", "time" (more hearts), "sudden" (served the Sudden Death Dish), "overtime-draw"
+// reason: "ko" (ran out of hearts), "double-ko", "time" (more hearts), "sudden" (served the Sudden Death Dish),
+// "overtime-draw", "forfeit" (the other chef left during the round)
 const finish = function (game, winner, reason) {
     game.phase = "over";
     game.winner = winner;
@@ -701,6 +779,13 @@ const finish = function (game, winner, reason) {
             event(game, { kind: "ko", to: p.index, x: p.x, y: p.y - 1, text: "K.O.!" });
         });
     }
+};
+
+// A chef left in the middle of a round: the chef who stayed wins
+const forfeit = function (game, index) {
+    if (game.phase !== "playing" || !game.players[index]) return false;
+    finish(game, 1 - index, "forfeit");
+    return true;
 };
 
 // Has the round ended? (called at the end of every tick)
@@ -730,6 +815,11 @@ const step = function (game, dt) {
     game.clock += dt;
     game.timeLeft -= dt;
     game.players.forEach((p) => { if (p.cheat && game.clock >= p.cheatUntil) endCheat(game, p); });   // 15 s are up
+    if (!game.overtime && game.timeLeft > 0 && paceLevel(game) > game.pace) {   // a new minute: orders speed up
+        game.pace = paceLevel(game);
+        event(game, { kind: "speedup", to: -1, x: COLS / 2, y: ROWS / 2 - 1, text: "ORDERS SPEED UP!",
+            orderTime: orderTimeNow(game), orderGap: orderGapNow(game) });
+    }
     game.players.forEach((p) => updatePlayer(game, p, dt));
     updatePots(game, dt);
     game.projectiles = game.projectiles.filter((pr) => stepProjectile(game, pr, dt));
@@ -743,6 +833,46 @@ const step = function (game, dt) {
     }
 
     return checkEnd(game) ? "over" : null;
+};
+
+// ---------- Action hint ----------
+// A short label for what a click would do right now (shown under the chef), or null
+const hintFor = function (game, p) {
+    if (game.phase !== "playing" || isStunned(game, p)) return null;
+    const held = p.held;
+    if (!held && nearestFloorItem(game, p)) return "Pick up";
+    const t = targetTile(p), ch = tileAt(t.x, t.y), on = game.tiles[keyOf(t.x, t.y)];
+    if (OWNED.indexOf(ch) >= 0 && sideOfX(t.x) !== p.index) return null;
+    if (!held) {
+        if (ch === "D") return "Take a plate";
+        if (ch === "K" && on) return on.state === "raw" ? "Right click: chop" : "Pick up";
+        if (ch === "C" && on) return "Pick up";
+        if (ch === "P" && on.state === "burnt") return "Empty the pot";
+        if (ch === "P" && on.state === "done") return "Bring a plate";
+        if (ch === "P" && on.state === "filling" && on.items.length) return "Take it out";
+        return null;
+    }
+    if (held.name === "plate") {
+        if (ch === "W" && held.items.length) {
+            return p.orders.some((o) => RECIPE_KEY[o.recipe] === sortedKey(held.items)) ? "Serve!" : "No order wants this";
+        }
+        if (ch === "P") return on.state === "done" && !held.items.length ? "Plate it" : null;
+        if (ch === "X") return held.items.length ? "Empty the plate" : null;
+        if (ch === "C" || ch === "K") {
+            if (!on) return ch === "C" ? "Put down" : null;
+            return on.name !== "plate" && PLATE_READY[on.name] === on.state ? "Add to plate" : null;
+        }
+        return null;
+    }
+    if (ch === "K") return on ? null : "Put on board";
+    if (ch === "P") return on.state === "filling" && potRecipeFor(on.items.concat([held])).possible ? "Add to pot" : null;
+    if (ch === "C") {
+        if (!on) return "Put down";
+        return on.name === "plate" && PLATE_READY[held.name] === held.state ? "Add to plate" : null;
+    }
+    if (ch === "X") return "Throw away";
+    if (ch === "W") return "Needs a plate";
+    return null;
 };
 
 // ---------- What the browsers receive ----------
@@ -765,6 +895,8 @@ const snapshot = function (game) {
             held: p.held, stun: round(Math.max(0, p.stunUntil - game.clock)),
             hearts: p.hearts, knockedOut: p.knockedOut,
             served: p.served, grabbed: p.grabbed, missed: p.missed, hits: p.hits,
+            streak: p.streak, bestStreak: p.bestStreak, rushes: p.rushes,
+            immune: game.clock < p.immuneUntil, hint: hintFor(game, p),
             cheat: p.cheat, chopping: p.chopping, moving: p.moving,
             boosting: game.clock < p.boostUntil,
             // seconds left on each skill, and seconds until it can be used again
@@ -773,7 +905,7 @@ const snapshot = function (game) {
             sprinting: isSprinting(game, p),
             sprintLeft: round(Math.max(0, p.sprintUntil - game.clock)),
             sprintWait: isSprinting(game, p) ? 0 : round(Math.max(0, p.sprintReadyAt - game.clock)),
-            orders: p.orders.map((o) => ({ id: o.id, recipe: o.recipe, t: round(Math.max(0, o.timeLeft)), total: o.total, sudden: !!o.sudden }))
+            orders: p.orders.map((o) => ({ id: o.id, recipe: o.recipe, t: round(Math.max(0, o.timeLeft)), total: o.total, sudden: !!o.sudden, rush: !!o.rush }))
         })),
         tiles: game.tiles,
         floor: game.floor.map((f) => ({
@@ -795,12 +927,14 @@ const config = function () {
             heartsMin: SETTINGS.heartsMin, heartsMax: SETTINGS.heartsMax,
             boostTime: SETTINGS.boostTime, boostSpeed: SETTINGS.boostSpeed,
             cheatTime: SETTINGS.cheatTime, cheatCooldown: SETTINGS.cheatCooldown,
-            sprintTime: SETTINGS.sprintTime, sprintCooldown: SETTINGS.sprintCooldown, sprintBoost: SETTINGS.sprintBoost
+            sprintTime: SETTINGS.sprintTime, sprintCooldown: SETTINGS.sprintCooldown, sprintBoost: SETTINGS.sprintBoost,
+            orderTime: SETTINGS.orderTime, orderGap: SETTINGS.orderGap, paceEvery: SETTINGS.paceEvery,
+            streakHeal: SETTINGS.streakHeal
         }
     };
 };
 
 module.exports = {
     SETTINGS, RECIPES, MAP, createGame, startRound, setReady, setHearts, step, pick, throwItem,
-    cheatOn, cheatOff, toggleCheat, sprint, setInput, snapshot, config
+    cheatOn, cheatOff, toggleCheat, sprint, emote, forfeit, setInput, snapshot, config
 };
