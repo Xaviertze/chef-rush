@@ -117,7 +117,7 @@ public/js/sound.js        Plays the sound effects and music, mute button
 public/js/input.js        Keyboard + mouse, cheat combination
 public/js/socket.js       All WebSocket messages
 public/js/main.js         Connects everything
-tools/make-sprites.html   Open in a browser to redraw / re-download sprites.png
+tools/make-sprites.html   Draws the older placeholder sprite sheet (same layout); the game now uses our own sprites.png
 tools/make-icons.js       node tools/make-icons.js regenerates the SVG icons
 tools/make-sounds.js      node tools/make-sounds.js regenerates the sound files
 ```

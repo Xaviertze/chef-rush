@@ -6,7 +6,7 @@ const Sprites = (function () {
     const CELL = 32;
 
     // Where each sprite sits in public/img/sprites.png  [column, row]
-    // (made by tools/make-sprites.html - you can swap in your own sheet with the same layout)
+    // (our own pixel-art sheet; tools/make-sprites.html draws the older placeholder sheet with the same layout)
     const CELLS = {
         lettuce_raw: [0, 0], lettuce_chopped: [1, 0], tomato_raw: [2, 0], tomato_chopped: [3, 0],
         onion_raw: [4, 0], onion_chopped: [5, 0], carrot_raw: [6, 0], carrot_chopped: [7, 0],
