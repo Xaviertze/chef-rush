@@ -42,7 +42,7 @@ node server.js</pre>
         <tr><td>Left click, <kbd>P</kbd> or <kbd>E</kbd></td><td>Pick up the ingredient you stand on, or pick up / put down / serve at the station you face</td></tr>
         <tr><td>Hold right click, <kbd>R</kbd> or <kbd>O</kbd></td><td>Chop on your chopping board (about 2 seconds)</td></tr>
         <tr><td><kbd>T</kbd> or <kbd>Q</kbd>, then left click</td><td>Aim with the mouse and throw the ingredient you hold</td></tr>
-        <tr><td><kbd>Space</kbd></td><td>Sprint for 5 seconds (then 5 seconds to recharge)</td></tr>
+        <tr><td><kbd>Space</kbd> or <kbd>Shift</kbd></td><td>Sprint for 5 seconds (then 5 seconds to recharge)</td></tr>
         <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td>Emotes</td></tr>
     </table>
     <ul>
@@ -53,6 +53,7 @@ node server.js</pre>
         <li>Every order you miss costs the hearts shown on its card. Lose your last heart and you're knocked out.</li>
         <li>Serve an order with more than half its bar left and your rival gets an extra rush order. Three dishes in a row give half a heart back.</li>
         <li>Hit your rival with a thrown ingredient to stun them for 2 seconds.</li>
+        <li>Steal from your rival: take what is on their chopping board, or plate up their finished pot with an empty plate.</li>
         <li>Regular time is 3 minutes; the chef with more hearts wins. If hearts are level, a Sudden Death Dish (up to 1 minute) decides it.
             A game therefore lasts at most 4 minutes.</li>
     </ul>
@@ -61,7 +62,8 @@ node server.js</pre>
     <ul>
         <li><b>On:</b> click the <b>Cheat</b> button above the kitchen (or type <kbd>W</kbd> <kbd>S</kbd> <kbd>W</kbd> <kbd>S</kbd> <kbd>A</kbd> <kbd>D</kbd> <kbd>A</kbd> <kbd>D</kbd>).</li>
         <li><b>Off:</b> click the <b>Cheat</b> button again. It also turns off by itself after 15 seconds, then needs 15 seconds to recharge.</li>
-        <li><b>While it's on:</b> chopping and cooking are instant, and every dish you serve takes that dish's hearts off your rival,
+        <li><b>While it's on:</b> chopping and cooking are instant, every dish you serve takes that dish's hearts off your rival,
+            and every throw that hits your rival takes half a heart,
             so you can knock them out quickly.</li>
     </ul>
 

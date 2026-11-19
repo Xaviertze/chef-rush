@@ -91,7 +91,8 @@ const SOUNDS = {
     rush: () => notes([81, 76, 81, 76], 0.07, { vol: 0.28, release: 0.3 }),                   // a rush order arrives
     heal: () => notes([76, 81, 88], 0.09, { wave: "sine", vol: 0.45, release: 0.5 }),         // streak: half a heart back
     land: () => tone({ from: 500, to: 1300, dur: 0.14, wave: "sine", vol: 0.4 }),             // throw landed on your board / pot
-    emote: () => tone({ from: 700, to: 1000, dur: 0.07, wave: "triangle", vol: 0.35 })
+    emote: () => tone({ from: 700, to: 1000, dur: 0.07, wave: "triangle", vol: 0.35 }),
+    steal: () => join(tone({ from: 1100, to: 1500, dur: 0.06, wave: "triangle", vol: 0.35 }), notes([79, 74, 70], 0.07, { wave: "square", vol: 0.25, release: 0.4 }))   // the rival stole from your board / pot
 };
 
 // Background music: a cheerful 8-bar loop (bass + melody) at 140 beats per minute

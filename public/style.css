@@ -128,7 +128,8 @@ form input.bad { border-color: var(--red); background: #fff0ee; }
 
 .controls { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .controls li { display: flex; align-items: center; gap: 10px; }
-.controls .keys { display: flex; gap: 3px; min-width: 128px; }
+.controls .keys { display: flex; flex-wrap: wrap; gap: 3px; flex: 0 0 200px; }
+.controls kbd.cheat-key { background: #e9d7f0; }                 /* looks like the Cheat button in the game */
 .rules { margin: 0; padding-left: 20px; line-height: 1.55; }
 .menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; text-align: center; }
 .menu figure { margin: 0; }

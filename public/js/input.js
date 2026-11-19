@@ -7,7 +7,7 @@
 //   Left click, P or E   pick up / put down / serve (while aiming, left click throws)
 //   Right click, R or O  hold to chop (about 2 seconds)
 //   T or Q               start aiming at the mouse pointer; left click throws, T / Q again (or Esc) cancels
-//   Space                sprint skill: run faster for 5 s, then 5 s to recharge
+//   Space or Shift       sprint skill: run faster for 5 s, then 5 s to recharge
 //   1 2 3 4              emotes (a bubble above your chef)
 //   W S W S A D A D      secret cheat combination (up down up down left right left right, arrows work too)
 //                        (the Cheat button above the kitchen also turns cheat on and off)
@@ -21,7 +21,8 @@ const Input = (function () {
     const CHOP_KEYS = ["KeyR", "KeyO"];
     const AIM_KEYS = ["KeyT", "KeyQ"];
     const EMOTE_KEYS = ["Digit1", "Digit2", "Digit3", "Digit4"];
-    const ACTIONS = PICK_KEYS.concat(CHOP_KEYS, AIM_KEYS, EMOTE_KEYS, ["Space", "Escape"]);
+    const SPRINT_KEYS = ["Space", "ShiftLeft", "ShiftRight"];
+    const ACTIONS = PICK_KEYS.concat(CHOP_KEYS, AIM_KEYS, EMOTE_KEYS, SPRINT_KEYS, ["Escape"]);
     const state = { up: false, down: false, left: false, right: false, chop: false };
     const chopKeys = {};            // chop keys (R / O) held right now
     let chopMouse = false;          // right mouse button held
@@ -96,7 +97,7 @@ const Input = (function () {
         if (PICK_KEYS.indexOf(code) >= 0) cb.pick();
         if (CHOP_KEYS.indexOf(code) >= 0) { chopKeys[code] = true; setChop(); }
         if (AIM_KEYS.indexOf(code) >= 0) toggleAim();
-        if (code === "Space") cb.sprint();       // preventDefault above stops Space scrolling or pressing buttons
+        if (SPRINT_KEYS.indexOf(code) >= 0) cb.sprint();   // preventDefault above stops Space scrolling or pressing buttons
         if (code === "Escape") cancelAim();
         if (EMOTE_KEYS.indexOf(code) >= 0) cb.emote(EMOTE_KEYS.indexOf(code) + 1);
     };

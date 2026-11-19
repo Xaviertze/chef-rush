@@ -166,7 +166,7 @@ const UI = (function () {
         $("#over-p2").text(b.name + (w === 1 ? " 👑" : ""));
         const rows = [
             ["Hearts left", "hearts"], ["Dishes served", "served"], ["Best streak", "bestStreak"],
-            ["Rush orders sent", "rushes"], ["Ingredients grabbed", "grabbed"],
+            ["Rush orders sent", "rushes"], ["Things stolen", "steals"], ["Ingredients grabbed", "grabbed"],
             ["Orders missed", "missed"], ["Rivals hit", "hits"]
         ];
         const body = $("#over-stats").empty();

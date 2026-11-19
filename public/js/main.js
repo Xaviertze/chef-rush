@@ -228,7 +228,7 @@ $(function () {
     const COLORS = {
         serve: "#7dff6b", expire: "#ff6b5b", cheathit: "#ff7bf0", hit: "#ffd23f", cheat: "#ff7bf0",
         burnt: "#ff6b5b", sprint: "#5ee0ff", overtime: "#ffd23f", ko: "#ff3b30", speedup: "#ffd23f",
-        rush: "#ff7bf0", heal: "#ff9ec4", potdone: "#7dff6b", land: "#5ee0ff"
+        rush: "#ff7bf0", heal: "#ff9ec4", potdone: "#7dff6b", land: "#5ee0ff", steal: "#ff9f1c"
     };
 
     const handleEvent = function (e) {
@@ -265,7 +265,12 @@ $(function () {
         if (e.kind === "cheathit" && mineEvent) {
             Sound.play("heart");
             HUD.shake("#hearts-" + me);
-            HUD.toast("Your rival is cheating: their dish took " + e.text.slice(1) + "!");
+            HUD.toast("Your rival is cheating: their " + (e.by === "throw" ? "throw" : "dish") + " took " + e.text.slice(1) + "!");
+        }
+        if (e.kind === "steal") {                                  // e.to = the chef who was robbed
+            renderer.addBurst(e.x, e.y, ["#ff9f1c", "#fff"], 10);
+            if (mineEvent) { Sound.play("steal"); HUD.toast(e.from + " stole your " + e.what + "!"); }
+            else if (e.by === me) HUD.toast("You stole their " + e.what + "!");
         }
         if (e.kind === "throw") Sound.play("throw", mineEvent ? 0.7 : 0.4);
         if (e.kind === "hit") {

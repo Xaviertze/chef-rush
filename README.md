@@ -48,7 +48,7 @@ For a short demo round: `GAME_TIME=60 node server.js` (macOS/Linux) or `set GAME
 | **Left click**, **P** or **E** | Pick up an ingredient you're standing on, or pick up / put down / serve at the station you face |
 | **Right click**, **R** or **O**, hold ~2 s | Chop on your chopping board |
 | **T** or **Q**, then left click | Aim with the mouse, then throw the ingredient you're holding. **T** / **Q** again (or Esc) cancels |
-| **Space** or the Sprint button | Sprint: run 1.6× faster for 5 s, then 5 s to recharge |
+| **Space**, **Shift** or the Sprint button | Sprint: run 1.6× faster for 5 s, then 5 s to recharge |
 | **1 2 3 4** | Emotes: 👍 😂 😡 🔥 in a bubble above your chef, seen by both players |
 | **Cheat** button (or the secret combination) | Cheat on / off, see [Cheat mode](#cheat-mode) |
 | 🔊 button (top bar) | Sound on / off (remembered in `localStorage`) |
@@ -67,11 +67,12 @@ For a short demo round: `GAME_TIME=60 node server.js` (macOS/Linux) or `set GAME
 - **Streak:** every 3 dishes in a row without a missed order gives ½ heart back, never more than the starting hearts. The three pips under the hearts show the streak; a missed order resets it.
 - **Orders speed up:** every minute, new orders arrive more often and their bars get shorter (minute 1: a new order every 15 s with 60 s to serve it; minute 2: every 12 s, 52 s; minute 3: every 9 s, 44 s). "ORDERS SPEED UP!" appears for both chefs, so missed orders (and lost hearts) get more likely near the end.
 - **Ingredients:** they spawn at random on the floor, more often the ones current orders need. They show a ring timer, blink, then vanish after 8–10 seconds. Both chefs race for them. Ingredients you drop also vanish after 10 seconds, but a dropped plate stays until someone picks it up.
-- **Your stations:** boards, pots, plates and serving counters are framed in your colour, and you can only use your own. The blue counters (including the middle island) are shared. The tile you are working on is outlined (red if it's your rival's). The chefs can walk through each other, so neither can block the other's stations.
+- **Your stations:** boards, pots, plates and serving counters are framed in your colour, and you can only cook and serve at your own (but see stealing below). The blue counters (including the middle island) are shared. The tile you are working on is outlined (red if it's your rival's). The chefs can walk through each other, so neither can block the other's stations.
 - **Mistakes are explained:** clicking (or P / E / R / O) when nothing can happen shows a short message ("The board is empty", "Face your chopping board to chop", ...).
 - **Pots:** a finished pot rings, then beeps faster and faster, and burns if you leave it for 10 seconds. Empty a burnt pot with empty hands.
 - **Sabotage:** a thrown ingredient that hits your rival stuns them for 2 seconds and makes them drop whatever they carry. After the stun they flicker for 1 second and can't be stunned again, so nobody can be stun-locked. Throws fly over counters; walls and stations stop them.
 - **Trick throws:** an ingredient thrown at your own empty chopping board, or at your own pot when it fits the recipe, lands right on it.
+- **Stealing:** you can raid your rival's stations. With empty hands, take whatever is on their chopping board; with a plate, add a chopped lettuce or tomato from their board to it, or plate up their finished pot dish (empty plate). The label under your chef says "Steal it!" or "Steal the dish!". The robbed chef hears a sound and sees who took what. Their plates, serving counter, the rest of their pot and their hands are off limits. Steals count in the game over table.
 - **Fair spawns:** ingredients appear in the left and right half in turn.
 - **Warnings:** an order that is almost out of time ticks, the kitchen pulses red when you're down to your last heart, and the music speeds up every minute and in the last 30 seconds.
 
@@ -88,19 +89,19 @@ For a short demo round: `GAME_TIME=60 node server.js` (macOS/Linux) or `set GAME
 - **Turn it on:** type the secret combination **W S W S A D A D** (up down up down left right left right; the arrow keys work too) within a second or so between keys, or click the **Cheat** button above the kitchen.
 - **Turn it off:** click the **Cheat** button again to end it early. Otherwise it turns off by itself after **15 seconds**.
 - **Recharge:** after it ends it needs **15 seconds** before it can be used again. Using the combination during that time shows how many seconds are left.
-- **While it's on:** chopping and cooking are instant, and every dish you serve takes that dish's hearts (½ or 1) off your rival, so you can knock them out quickly.
+- **While it's on:** chopping and cooking are instant, every dish you serve takes that dish's hearts (½ or 1) off your rival, and every throw that hits your rival takes ½ heart, so you can knock them out quickly.
 - Both players see a CHEAT badge counting down beside the cheating chef, and the Cheat button shows the seconds left or the recharge time.
 - The server keeps track of who is cheating and for how long; the browser only sends "cheat on" (combination) or the button press (on / off).
 
 ## Sound
 
-Every sound is a small `.wav` file in `public/sounds/`, played with HTML `<audio>` elements: picking up, putting down, chopping, serving, losing a heart, throwing, getting hit, a burnt pot, cheat on, sprint, the speed boost, orders speeding up, the countdown beeps, the Sudden Death alarm, a knockout, win / lose jingles, a pot finishing, the burn alarm, the order-running-out tick, a rush order, the streak heal, a throw landing on a station, emotes, and background music during a round (it speeds up as the round goes on). The files are generated by `node tools/make-sounds.js`.
+Every sound is a small `.wav` file in `public/sounds/`, played with HTML `<audio>` elements: picking up, putting down, chopping, serving, losing a heart, throwing, getting hit, a burnt pot, cheat on, sprint, the speed boost, orders speeding up, the countdown beeps, the Sudden Death alarm, a knockout, win / lose jingles, a pot finishing, the burn alarm, the order-running-out tick, a rush order, the streak heal, a throw landing on a station, something stolen from you, emotes, and background music during a round (it speeds up as the round goes on). The files are generated by `node tools/make-sounds.js`.
 
 ## Files
 
 ```
 server.js                 Express, accounts + sessions, matchmaking, waiting room (hearts), ranking, 30 Hz game loop
-game.js                   All game rules (kitchen map, spawns, pots, orders, rush orders, streak, hearts, overtime, throwing, skills, cheat, hints)
+game.js                   All game rules (kitchen map, spawns, pots, orders, rush orders, streak, hearts, overtime, throwing, stealing, skills, cheat, hints)
 data/users.json           Created automatically: accounts (hashed passwords) + stats
 public/index.html         Home, waiting, waiting room, game and game over pages, <audio> elements
 public/style.css          Layout + keyframe animations

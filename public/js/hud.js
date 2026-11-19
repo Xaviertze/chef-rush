@@ -24,7 +24,7 @@ const HUD = (function () {
         $("#clock").text(Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0")).removeClass("low overtime");
         $("#overtime-label").addClass("hidden");
         $("#cheat-btn").removeClass("on cooling").text("Cheat").css("--fill", "0%");
-        $("#sprint-btn").removeClass("on cooling").text("Sprint (Space)").css("--fill", "0%");
+        $("#sprint-btn").removeClass("on cooling").text("Sprint (Space/Shift)").css("--fill", "0%");
         hideCount();
     };
 
@@ -135,10 +135,10 @@ const HUD = (function () {
         // Red pulse around the kitchen when I'm down to my last heart
         $("#low-hearts").toggleClass("hidden", !(state.phase === "playing" && p.hearts <= 1));
         skill("#cheat-btn", "Cheat", null, p.cheat, p.cheatLeft, settings.cheatTime, p.cheatWait, settings.cheatCooldown);
-        skill("#sprint-btn", "Sprint", "Space", p.sprinting, p.sprintLeft, settings.sprintTime, p.sprintWait, settings.sprintCooldown);
+        skill("#sprint-btn", "Sprint", "Space/Shift", p.sprinting, p.sprintLeft, settings.sprintTime, p.sprintWait, settings.sprintCooldown);
     };
 
-    // One skill button: "Cheat ON 12s" while on, "Cheat in 25s" while recharging, "Sprint (Space)" when ready
+    // One skill button: "Cheat ON 12s" while on, "Cheat in 25s" while recharging, "Sprint (Space/Shift)" when ready
     const skill = function (selector, label, key, on, left, time, wait, cooldown) {
         let text = key ? label + " (" + key + ")" : label, used = 0;
         if (on) { text = label + " ON " + Math.ceil(left) + "s"; used = 1 - left / time; }

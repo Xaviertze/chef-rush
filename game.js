@@ -36,7 +36,8 @@ const SETTINGS = {
     rushFraction: 0.5,                                 // serve with more than half the bar left: your rival gets a rush order
     streakHeal: 3, healAmount: 0.5,                    // every 3 dishes in a row without a miss: +½ heart
     immuneTime: 1,                                     // after a stun ends, 1 s where throws can't stun you again
-    emoteGap: 1                                        // seconds between two emotes
+    emoteGap: 1,                                       // seconds between two emotes
+    cheatHitDamage: 0.5                                // cheat: a throw that hits your rival also takes ½ heart
 };
 
 // items = what must be on the plate; pot = what goes in the pot (name, state)
@@ -121,6 +122,7 @@ const resetPlayer = function (p, hearts) {
         stunUntil: 0, hearts, knockedOut: false, orders: [], nextOrder: 0, orderTimer: 0,
         served: 0, grabbed: 0, missed: 0, hits: 0,
         streak: 0, bestStreak: 0, rushes: 0,            // dishes in a row without a miss, rush orders sent to the rival
+        steals: 0,                                      // things taken from the rival's board or pot
         immuneUntil: 0, emoteAt: 0,
         cheat: false, chopping: false, moving: false, chopPressed: false,
         cheatUntil: 0, cheatReadyAt: 0,                 // game.clock times for the cheat skill
@@ -376,6 +378,47 @@ const potToPlate = function (game, p, pot, plate) {
     else say(game, p, "Nothing to serve yet");
 };
 
+// ---------- Stealing ----------
+// The rival's chopping board and pot can be raided: take what's on their board (hands free, or a plate for
+// a chopped salad ingredient), or plate up their finished pot dish. Their plates, serving counter and the
+// rest of their pot stay locked, and nobody can take things out of a chef's hands.
+const isRivalStation = (p, ch, x) => OWNED.indexOf(ch) >= 0 && sideOfX(x) !== p.index;
+const itemLabel = (name) => (RECIPES[name] ? RECIPES[name].label : name);
+
+const stolen = function (game, p, name, t) {
+    const owner = game.players[1 - p.index];
+    p.steals++;
+    event(game, { kind: "steal", to: owner.index, by: p.index, from: p.name, what: itemLabel(name),
+        x: t.x + 0.5, y: t.y + 0.6, text: "STOLEN!" });
+};
+
+// Hands free at the rival's board: take what's on it. Returns true if something was stolen.
+const stealFromBoard = function (game, p, t, ch, k) {
+    if (ch !== "K" || !game.tiles[k]) return false;
+    p.held = game.tiles[k];
+    delete game.tiles[k];
+    stolen(game, p, p.held.name, t);
+    return true;
+};
+
+// Holding a plate at the rival's board or pot: plate up their chopped ingredient or finished dish.
+// Returns true if this was a steal attempt (successful or explained), false if it doesn't apply.
+const stealWithPlate = function (game, p, plate, t, ch, k) {
+    if (ch === "K" && game.tiles[k]) {
+        const ing = game.tiles[k];
+        if (addToPlate(game, p, plate, ing)) { delete game.tiles[k]; stolen(game, p, ing.name, t); }
+        return true;
+    }
+    if (ch === "P" && game.tiles[k].state === "done") {
+        if (plate.items.length) { say(game, p, "Use an empty plate"); return true; }
+        const dish = game.tiles[k].dish;
+        potToPlate(game, p, game.tiles[k], plate);
+        stolen(game, p, dish, t);
+        return true;
+    }
+    return false;
+};
+
 // ---------- P: pick up / put down / serve ----------
 const notYours = function (game, p, ch, x) {
     if (OWNED.indexOf(ch) < 0 || sideOfX(x) === p.index) return false;
@@ -392,6 +435,10 @@ const pickUp = function (game, p, t, ch, k) {
         if (f.spawned) p.grabbed++;
         game.floor.splice(game.floor.indexOf(f), 1);
         return;
+    }
+    if (isRivalStation(p, ch, t.x)) {
+        if (stealFromBoard(game, p, t, ch, k)) return;
+        if (ch === "P" && game.tiles[k].state === "done") { say(game, p, "Bring a plate to steal their dish"); return; }
     }
     if (notYours(game, p, ch, t.x)) return;
     if (ch === "D") { p.held = newPlate(); return; }
@@ -459,6 +506,7 @@ const serve = function (game, p, t) {
 const putDown = function (game, p, t, ch, k) {
     const held = p.held;
     const isPlate = held.name === "plate";
+    if (isPlate && isRivalStation(p, ch, t.x) && stealWithPlate(game, p, held, t, ch, k)) return;
     if (notYours(game, p, ch, t.x)) return;
 
     if (ch === "X") {
@@ -533,6 +581,8 @@ const throwItem = function (game, index, angle) {
 
 // ---------- Cheat skill: 15 s on, then 15 s to recharge ----------
 // Turned on by the key combination (W S W S A D A D) or the Cheat button; the button ends it early.
+// While it's on: instant chopping and cooking, every dish served takes its hearts off the rival,
+// and every throw that hits the rival takes ½ heart.
 const endCheat = function (game, p) {
     p.cheat = false;
     p.cheatReadyAt = game.clock + SETTINGS.cheatCooldown;
@@ -699,6 +749,11 @@ const stepProjectile = function (game, pr, dt) {
             }
             dropOnFloor(game, pr.item, target.x - 0.3, target.y + 0.2);
             event(game, { kind: "hit", to: target.index, x: target.x, y: target.y - 1, text: "BONK!" });
+            if (game.players[pr.owner].cheat) {                 // cheat: the hit also takes ½ heart
+                target.hearts = Math.max(0, target.hearts - SETTINGS.cheatHitDamage);
+                event(game, { kind: "cheathit", to: target.index, x: target.x, y: target.y - 1.6,
+                    text: "-" + heartText(SETTINGS.cheatHitDamage), by: "throw" });
+            }
             return false;
         }
         if (pr.dist >= SETTINGS.throwRange) {
@@ -842,7 +897,11 @@ const hintFor = function (game, p) {
     const held = p.held;
     if (!held && nearestFloorItem(game, p)) return "Pick up";
     const t = targetTile(p), ch = tileAt(t.x, t.y), on = game.tiles[keyOf(t.x, t.y)];
-    if (OWNED.indexOf(ch) >= 0 && sideOfX(t.x) !== p.index) return null;
+    if (isRivalStation(p, ch, t.x)) {                               // stealing
+        if (ch === "K" && on && (!held || (held.name === "plate" && PLATE_READY[on.name] === on.state))) return "Steal it!";
+        if (ch === "P" && on.state === "done") return held && held.name === "plate" && !held.items.length ? "Steal the dish!" : (held ? null : "Bring a plate");
+        return null;
+    }
     if (!held) {
         if (ch === "D") return "Take a plate";
         if (ch === "K" && on) return on.state === "raw" ? "Right click: chop" : "Pick up";
@@ -895,7 +954,7 @@ const snapshot = function (game) {
             held: p.held, stun: round(Math.max(0, p.stunUntil - game.clock)),
             hearts: p.hearts, knockedOut: p.knockedOut,
             served: p.served, grabbed: p.grabbed, missed: p.missed, hits: p.hits,
-            streak: p.streak, bestStreak: p.bestStreak, rushes: p.rushes,
+            streak: p.streak, bestStreak: p.bestStreak, rushes: p.rushes, steals: p.steals,
             immune: game.clock < p.immuneUntil, hint: hintFor(game, p),
             cheat: p.cheat, chopping: p.chopping, moving: p.moving,
             boosting: game.clock < p.boostUntil,

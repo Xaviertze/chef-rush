@@ -87,11 +87,21 @@
                 <h3>Controls</h3>
                 <ul class="controls">
                     <li><span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>or arrow keys to move</span></li>
-                    <li><span class="keys"><kbd>Left click</kbd></span><span>Pick up / put down / serve (or P / E)</span></li>
-                    <li><span class="keys"><kbd>Right click</kbd></span><span>Hold about 2 s to chop (or hold R / O)</span></li>
-                    <li><span class="keys"><kbd>T</kbd><kbd>Q</kbd></span><span>Aim with the mouse, left click to throw (T / Q again or Esc cancels)</span></li>
-                    <li><span class="keys"><kbd>Space</kbd></span><span>Sprint: 1.6x speed for 5 s, then 5 s to recharge</span></li>
+                    <li><span class="keys"><kbd>Left click</kbd><kbd>P</kbd><kbd>E</kbd></span><span>Pick up / put down / serve</span></li>
+                    <li><span class="keys"><kbd>Right click</kbd><kbd>R</kbd><kbd>O</kbd></span><span>Hold about 2 s to chop</span></li>
+                    <li><span class="keys"><kbd>T</kbd><kbd>Q</kbd></span><span>Start aiming at the mouse pointer</span></li>
+                    <li><span class="keys"><kbd>Left click</kbd></span><span>While aiming: throw what you hold (<kbd>T</kbd> / <kbd>Q</kbd> again or <kbd>Esc</kbd> cancels)</span></li>
+                    <li><span class="keys"><kbd>Space</kbd><kbd>Shift</kbd></span><span>Sprint: 1.6x speed for 5 s, then 5 s to recharge</span></li>
                     <li><span class="keys"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd></span><span>Emotes: 👍 😂 😡 🔥 pop up above your chef</span></li>
+                    <li><span class="keys"><kbd class="cheat-key">Cheat</kbd></span><span>The Cheat button above the kitchen: turns cheat mode on, click again to turn it off</span></li>
+                    <li><span class="keys"><kbd>W</kbd><kbd>S</kbd><kbd>W</kbd><kbd>S</kbd><kbd>A</kbd><kbd>D</kbd><kbd>A</kbd><kbd>D</kbd></span><span>Secret combination: also turns cheat mode on (arrow keys work too)</span></li>
+                </ul>
+                <h3>Cheat mode</h3>
+                <ul class="rules">
+                    <li>Lasts <b>15 s</b>, then needs <b>15 s</b> to recharge. Both chefs see a CHEAT badge while it's on.</li>
+                    <li>Chopping and cooking are <b>instant</b>.</li>
+                    <li>Every dish you serve takes <b>that dish's hearts</b> off your rival.</li>
+                    <li>Every throw that hits your rival takes <b>½ heart</b>.</li>
                 </ul>
                 <h3>Hearts and orders</h3>
                 <ul class="rules">
@@ -109,6 +119,8 @@
                     <li>Hit your rival with a thrown ingredient: they're stunned for 2 s and drop what they carry
                         (then they can't be stunned again for 1 s).</li>
                     <li>Throw an ingredient at <b>your own</b> empty chopping board or your pot and it lands right on it.</li>
+                    <li><b>Steal:</b> raid your rival's <b>chopping board</b> (take what's on it) or plate up their <b>finished pot</b>
+                        with an empty plate. Their plates, serving counter and hands are off limits.</li>
                     <li>The label under your chef says what a click will do right now.</li>
                 </ul>
                 <div class="menu">
@@ -209,7 +221,7 @@
                 </div>
                 <div class="skills">
                     <button id="cheat-btn" class="skill-btn cheat-btn">Cheat</button>
-                    <button id="sprint-btn" class="skill-btn sprint-btn">Sprint (Space)</button>
+                    <button id="sprint-btn" class="skill-btn sprint-btn">Sprint (Space/Shift)</button>
                 </div>
             </div>
             <div class="hud-player p2" id="hud-1">
@@ -234,7 +246,7 @@
             <span><kbd>Left click</kbd>/<kbd>P</kbd>/<kbd>E</kbd> pick / drop / serve</span>
             <span><kbd>Right click</kbd>/<kbd>R</kbd>/<kbd>O</kbd> hold to chop</span>
             <span><kbd>T</kbd>/<kbd>Q</kbd> aim, click to throw</span>
-            <span><kbd>Space</kbd> sprint</span>
+            <span><kbd>Space</kbd>/<kbd>Shift</kbd> sprint</span>
             <span><kbd>1</kbd>-<kbd>4</kbd> emote</span>
         </footer>
     </main>
@@ -286,6 +298,7 @@
         <audio id="snd-rush" src="sounds/rush.wav" preload="auto"></audio>
         <audio id="snd-heal" src="sounds/heal.wav" preload="auto"></audio>
         <audio id="snd-land" src="sounds/land.wav" preload="auto"></audio>
+        <audio id="snd-steal" src="sounds/steal.wav" preload="auto"></audio>
         <audio id="snd-emote" src="sounds/emote.wav" preload="auto"></audio>
     </div>
 
