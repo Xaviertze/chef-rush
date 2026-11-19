@@ -1,63 +1,83 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" xmlns:c2pa="http://c2pa.org/manifest">
     <defs>
-        <linearGradient id="lettuce-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0" stop-color="#8ee05f" />
-            <stop offset="1" stop-color="#3f9f2a" />
+        <linearGradient id="bowl-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#c3cad6"/><stop offset="0.28" stop-color="#ffffff"/>
+            <stop offset="0.62" stop-color="#eef1f6"/><stop offset="1" stop-color="#a9b2c0"/>
         </linearGradient>
-        <radialGradient id="tomato-grad" fx="35%" fy="35%">
-            <stop offset="0.1" stop-color="#ff9b7d" />
-            <stop offset="1" stop-color="#d8331f" />
-        </radialGradient>
-        <radialGradient id="onion-grad" fx="35%" fy="35%">
-            <stop offset="0.1" stop-color="#f6e2fa" />
-            <stop offset="1" stop-color="#b678c4" />
-        </radialGradient>
-        <linearGradient id="carrot-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0" stop-color="#ffb259" />
-            <stop offset="1" stop-color="#e2720f" />
+        <linearGradient id="bowl-shade" x1="0.2" y1="0.2" x2="0.9" y2="1">
+            <stop offset="0.45" stop-color="#7d889a" stop-opacity="0"/><stop offset="1" stop-color="#6f7b8f" stop-opacity="0.45"/>
         </linearGradient>
-        <radialGradient id="bowl-grad" fx="50%" fy="30%">
-            <stop offset="0.4" stop-color="#ffffff" />
-            <stop offset="1" stop-color="#c9ced6" />
-        </radialGradient>
-        <radialGradient id="soup-grad" fx="40%" fy="40%">
-            <stop offset="0" stop-color="#ff7a52" />
-            <stop offset="1" stop-color="#c8321c" />
-        </radialGradient>
-        <radialGradient id="stew-grad" fx="40%" fy="40%">
-            <stop offset="0" stop-color="#c98a4a" />
-            <stop offset="1" stop-color="#7a4a1f" />
-        </radialGradient>
-        <linearGradient id="pot-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0" stop-color="#5b6470" />
-            <stop offset="0.45" stop-color="#9aa4b0" />
-            <stop offset="1" stop-color="#3d444d" />
+        <linearGradient id="rim-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9dfe8"/>
         </linearGradient>
-        <radialGradient id="coin-grad" fx="35%" fy="30%">
-            <stop offset="0.1" stop-color="#fff2a8" />
-            <stop offset="1" stop-color="#e3a514" />
-        </radialGradient>
-        <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0" stop-color="#fff2a8" />
-            <stop offset="0.5" stop-color="#f7c531" />
-            <stop offset="1" stop-color="#c98a0a" />
+        <linearGradient id="inner-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8b95a6"/><stop offset="1" stop-color="#dfe4ec"/>
         </linearGradient>
-        <radialGradient id="heart-grad" fx="35%" fy="30%">
-            <stop offset="0.1" stop-color="#ff9a9a" />
-            <stop offset="1" stop-color="#d81e2c" />
-        </radialGradient>
-        <!-- Outside the slides: clipPath keeps only the left half of a shape (used for the half heart) -->
-        <clipPath id="left-half"><rect x="0" y="0" width="32" height="64"/></clipPath>
+        <linearGradient id="foot-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#b3bbc8"/><stop offset="0.4" stop-color="#f1f3f8"/><stop offset="1" stop-color="#99a3b3"/>
+        </linearGradient>
+        <clipPath id="inside"><ellipse cx="32" cy="30.3" rx="24" ry="6.4"/></clipPath>
+        <clipPath id="heap"><ellipse cx="32" cy="30.3" rx="24" ry="6.4"/><rect x="1" y="0" width="62" height="30.6"/></clipPath>
+        
+        <radialGradient id="stew-grad" cx="0.5" cy="0.4" r="0.7"><stop offset="0" stop-color="#cf9255"/><stop offset="1" stop-color="#6e4219"/></radialGradient>
+        <radialGradient id="carrot-grad" fx="0.35" fy="0.3"><stop offset="0" stop-color="#ffc372"/><stop offset="1" stop-color="#e2720f"/></radialGradient>
+        <radialGradient id="potato-grad" fx="0.3" fy="0.3"><stop offset="0" stop-color="#fff3c6"/><stop offset="1" stop-color="#e2bd69"/></radialGradient>
+        <radialGradient id="pea-grad" fx="0.3" fy="0.3"><stop offset="0" stop-color="#c8f58f"/><stop offset="1" stop-color="#4aa62e"/></radialGradient>
+        <radialGradient id="onion-grad" fx="0.35" fy="0.3"><stop offset="0" stop-color="#f6e2fa"/><stop offset="1" stop-color="#b678c4"/></radialGradient>
+    
     </defs>
 
     <g id="bowl">
-        <ellipse cx="32" cy="30" rx="27" ry="8" fill="url(#stew-grad)" stroke="#1b1209" stroke-width="2"/>
-        <path d="M5 30 a27 24 0 0 0 54 0" fill="url(#bowl-grad)" stroke="#1b1209" stroke-width="2"/>
-        <rect x="22" y="52" width="20" height="5" rx="2" fill="#c9ced6" stroke="#1b1209" stroke-width="2"/>
+        <rect x="21.5" y="51.5" width="21" height="5.5" rx="2.5" fill="url(#foot-grad)" stroke="#1b1209" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M5 30 a27 24 0 0 0 54 0 Z" fill="url(#bowl-grad)" stroke="#1b1209" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M5 30 a27 24 0 0 0 54 0 Z" fill="url(#bowl-shade)"/>
+        <path d="M7.2 38.2 Q32 48.5 56.8 38.2" fill="none" stroke="#8a5524" stroke-width="3"/>
+        <path d="M7.4 37 Q32 47.2 56.6 37" fill="none" stroke="#d29b5b" stroke-width="0.9" opacity="0.8"/>
+        <path d="M15.2 44.2 q1.4 3 4.8 5" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+        <circle cx="12.6" cy="42.2" r="0.8" fill="#ffffff" opacity="0.9"/>
+        <ellipse cx="32" cy="30" rx="27" ry="8.5" fill="url(#rim-grad)" stroke="#1b1209" stroke-width="2"/>
+        <ellipse cx="32" cy="30.3" rx="24" ry="6.4" fill="url(#inner-grad)" stroke="#1b1209" stroke-width="1.4"/>
     </g>
-    <g id="toppings">
-        <g fill="url(#carrot-grad)" stroke="#1b1209" stroke-width="2"><ellipse cx="21" cy="29" rx="4" ry="3"/><ellipse cx="41" cy="30" rx="4" ry="3"/></g>
-        <g fill="url(#onion-grad)" stroke="#1b1209" stroke-width="2"><circle cx="31" cy="29" r="3.5"/><circle cx="47" cy="27" r="3"/></g>
-        <g fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.8">
-            <path d="M24 18 q-3 -5 0 -10"/><path d="M33 17 q-3 -5 0 -10"/><path d="M42 18 q-3 -5 0 -10"/></g></g>
-</svg>
+    <g id="stew" clip-path="url(#inside)">
+        <ellipse cx="32" cy="31.3" rx="23" ry="5.7" fill="url(#stew-grad)"/>
+        <ellipse cx="32" cy="31.3" rx="23" ry="5.7" fill="none" stroke="#3f230c" stroke-width="1" opacity="0.5"/>
+        <path d="M13.5 29.6 Q22 26.7 34 26.9" fill="none" stroke="#f0c488" stroke-width="1.1" stroke-linecap="round" opacity="0.6"/>
+        <g transform="rotate(-10 19 29.8)">
+            <path d="M15.4 31.6 q3.6 -6 7.2 0 q-3.6 1.8 -7.2 0 Z" fill="url(#onion-grad)" stroke="#1b1209" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M17 30.3 q2 -2.4 4 0" fill="none" stroke="#f6e2fa" stroke-width="0.7" stroke-linecap="round"/>
+        </g>
+        <g transform="rotate(-14 28.5 28.4)">
+            <rect x="24.9" y="25.299999999999997" width="7.2" height="6.2" rx="1.7" fill="url(#potato-grad)" stroke="#1b1209" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M26.1 27.0 h2.6" stroke="#ffffff" stroke-width="0.9" stroke-linecap="round" opacity="0.85"/>
+            <circle cx="30.0" cy="29.4" r="0.5" fill="#caa04c"/>
+        </g>
+        <g>
+            <ellipse cx="38" cy="28.2" rx="4.4" ry="3" fill="url(#carrot-grad)" stroke="#1b1209" stroke-width="1.6"/>
+            <ellipse cx="38" cy="28.2" rx="2.8000000000000003" ry="1.9" fill="none" stroke="#ffd9a0" stroke-width="0.7"/>
+            <circle cx="38" cy="28.2" r="0.7" fill="#ffe2b4"/>
+            <ellipse cx="36.4" cy="27.099999999999998" rx="1" ry="0.55" fill="#fff" opacity="0.7"/>
+        </g>
+        <g><circle cx="46" cy="31" r="2.1" fill="url(#pea-grad)" stroke="#1b1209" stroke-width="1.3"/><circle cx="45.3" cy="30.3" r="0.5" fill="#fff" opacity="0.85"/></g>
+        <g>
+            <ellipse cx="22.5" cy="33.2" rx="4.4" ry="3" fill="url(#carrot-grad)" stroke="#1b1209" stroke-width="1.6"/>
+            <ellipse cx="22.5" cy="33.2" rx="2.8000000000000003" ry="1.9" fill="none" stroke="#ffd9a0" stroke-width="0.7"/>
+            <circle cx="22.5" cy="33.2" r="0.7" fill="#ffe2b4"/>
+            <ellipse cx="20.9" cy="32.1" rx="1" ry="0.55" fill="#fff" opacity="0.7"/>
+        </g>
+        <g transform="rotate(16 41.5 33)">
+            <rect x="37.9" y="29.9" width="7.2" height="6.2" rx="1.7" fill="url(#potato-grad)" stroke="#1b1209" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M39.1 31.6 h2.6" stroke="#ffffff" stroke-width="0.9" stroke-linecap="round" opacity="0.85"/>
+            <circle cx="43.0" cy="34" r="0.5" fill="#caa04c"/>
+        </g>
+        <g><circle cx="32" cy="32.6" r="2.1" fill="url(#pea-grad)" stroke="#1b1209" stroke-width="1.3"/><circle cx="31.3" cy="31.900000000000002" r="0.5" fill="#fff" opacity="0.85"/></g>
+        <ellipse cx="16.5" cy="30.6" rx="1.1" ry="0.55" fill="#3fa32a" transform="rotate(20 16.5 30.6)"/><ellipse cx="29.5" cy="27.2" rx="1.1" ry="0.55" fill="#3fa32a" transform="rotate(-25 29.5 27.2)"/><ellipse cx="35.5" cy="33.8" rx="1.1" ry="0.55" fill="#3fa32a" transform="rotate(40 35.5 33.8)"/><ellipse cx="47.2" cy="32.4" rx="1.1" ry="0.55" fill="#3fa32a" transform="rotate(-30 47.2 32.4)"/><ellipse cx="24.5" cy="34.6" rx="1.1" ry="0.55" fill="#3fa32a" transform="rotate(10 24.5 34.6)"/><ellipse cx="42.5" cy="27.4" rx="1.1" ry="0.55" fill="#3fa32a" transform="rotate(35 42.5 27.4)"/>
+    </g>
+    <g id="steam" fill="none" stroke-linecap="round">
+        <g stroke="#b9c6dc" stroke-width="4" opacity="0.35">
+            <path d="M24 21 C19.5 17 28.5 13.5 24 8"/><path d="M32.5 20 C28 16 37 12.5 32.5 7"/><path d="M41 21 C36.5 17 45.5 13.5 41 8"/>
+        </g>
+        <g stroke="#ffffff" stroke-width="2.4" opacity="0.92">
+            <path d="M24 21 C19.5 17 28.5 13.5 24 8"/><path d="M32.5 20 C28 16 37 12.5 32.5 7"/><path d="M41 21 C36.5 17 45.5 13.5 41 8"/>
+        </g>
+    </g>
+<metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTpmZjhkODM4MS01MTk0LTRlMzQtODIyOS1hMjU1NWFhYWFlNDQAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaBYiDZzp1YEEBFS6sDy+JaoAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDozOTA5OWE5OS01ZDMwLTRlOTEtOGRiNC1iNjQzYzMzYmM4YTlscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoXuLfNlvDJRtJ3voZpDsonwAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggenKerx0qD4h0dX2xUaZNM8Y1A5Hf3C0MXmNSVBvJgK2kZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaBA0gUpX7mLCRwjrO2SLvukAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIGxq4IsQsr9nLiq9azJ+sUXRRAJ8aGQejwixGqs6F+y4ZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GRumZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmZmOGQ4MzgxLTUxOTQtNGUzNC04MjI5LWEyNTU1YWFhYWU0NC9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjFiNmFmNzM0LTllOTAtNGU1My1hMGNlLWEyYzRlZDZlMDM3MHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCB6cp6vHSoPiHR1fbFRpk0zxjUDkd/cLQxeY1JUG8mAraJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggI1Md/Jo3T5pVtpjUfBSihtpWN2WJt7dw5R40Ve4uorSiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggdmZZ+0PTWApP3cz4WZmzAsSEjLFj+zEAIU8MiPl8/vx0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQARtQqBaQ8OJMj8AC0lJ4LgQnfccnEOycM0IsiWNn7bD09YVd+521q+ZVqfqwwio8V2amj7DqhoBarTfKFgNY74=</c2pa:manifest></metadata></svg>
