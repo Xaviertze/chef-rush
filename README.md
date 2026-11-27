@@ -89,7 +89,7 @@ For a short demo round: `GAME_TIME=60 node server.js` (macOS/Linux) or `set GAME
 - **Turn it on:** type the secret combination **W S W S A D A D** (up down up down left right left right; the arrow keys work too) within a second or so between keys, or click the **Cheat** button above the kitchen.
 - **Turn it off:** click the **Cheat** button again to end it early. Otherwise it turns off by itself after **15 seconds**.
 - **Recharge:** after it ends it needs **15 seconds** before it can be used again. Using the combination during that time shows how many seconds are left.
-- **While it's on:** chopping and cooking are instant, every dish you serve takes that dish's hearts (½ or 1) off your rival, and every throw that hits your rival takes ½ heart, so you can knock them out quickly.
+- **While it's on:** chopping and cooking are instant, every dish you serve takes **half the starting hearts** off your rival (2½ with 5 hearts, 4 with 8, so two dishes knock a full-health rival out), and every throw that hits your rival takes ½ heart, so you can knock them out quickly.
 - Both players see a CHEAT badge counting down beside the cheating chef, and the Cheat button shows the seconds left or the recharge time.
 - The server keeps track of who is cheating and for how long; the browser only sends "cheat on" (combination) or the button press (on / off).
 

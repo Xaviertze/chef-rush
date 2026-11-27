@@ -37,7 +37,8 @@ const SETTINGS = {
     streakHeal: 3, healAmount: 0.5,                    // every 3 dishes in a row without a miss: +½ heart
     immuneTime: 1,                                     // after a stun ends, 1 s where throws can't stun you again
     emoteGap: 1,                                       // seconds between two emotes
-    cheatHitDamage: 0.5                                // cheat: a throw that hits your rival also takes ½ heart
+    cheatHitDamage: 0.5,                               // cheat: a throw that hits your rival also takes ½ heart
+    cheatServeShare: 0.5                               // cheat: every dish served takes half the starting hearts off the rival
 };
 
 // items = what must be on the plate; pot = what goes in the pot (name, state)
@@ -496,8 +497,8 @@ const serve = function (game, p, t) {
         p.hearts = Math.min(game.hearts, p.hearts + SETTINGS.healAmount);
         event(game, { kind: "heal", to: p.index, x: p.x, y: p.y - 1.4, text: "+" + heartText(SETTINGS.healAmount) });
     }
-    if (p.cheat) {                                                // cheat: the dish hurts your rival
-        const damage = RECIPES[order.recipe].hearts;
+    if (p.cheat) {                                                // cheat: the dish takes half the starting hearts
+        const damage = game.hearts * SETTINGS.cheatServeShare;      // (5 hearts: 2½, so two dishes knock the rival out)
         rival.hearts = Math.max(0, rival.hearts - damage);
         event(game, { kind: "cheathit", to: rival.index, x: rival.x, y: rival.y - 1, text: "-" + heartText(damage) });
     }
@@ -581,7 +582,7 @@ const throwItem = function (game, index, angle) {
 
 // ---------- Cheat skill: 15 s on, then 15 s to recharge ----------
 // Turned on by the key combination (W S W S A D A D) or the Cheat button; the button ends it early.
-// While it's on: instant chopping and cooking, every dish served takes its hearts off the rival,
+// While it's on: instant chopping and cooking, every dish served takes half the starting hearts off the rival,
 // and every throw that hits the rival takes ½ heart.
 const endCheat = function (game, p) {
     p.cheat = false;
