@@ -34,7 +34,7 @@ For a short demo round: `GAME_TIME=60 node server.js` (macOS/Linux) or `set GAME
 2. **Waiting room.** When a second chef clicks Find match, the two are paired and see each other's names. Either chef can set the **starting hearts (5–8)**; both see the choice, and changing it turns off both players' Ready. The three recipes are shown as "Tonight's menu". Both must press **Ready**, then a 3-2-1 countdown starts the game.
 3. **Game page.** The kitchen is drawn on a canvas in the middle. Each chef's hearts, streak and order cards are on either side, and the clock and skill buttons are above it. A label under your chef says what a click will do right now ("Add to pot", "Serve!", ...). The whole page fits a 1280×720 window without scrolling.
 4. **Game over page.**
-   - A banner over the kitchen ("K.O.!", "TIME'S UP!", ...) for 2 seconds, then the page.
+   - A banner over the kitchen ("YOU WIN!", "YOU LOSE!" or "DRAW!") for 2 seconds, then the page, which explains how the round ended.
    - "You win!", "You lose!" or "It's a draw!", with a crown next to the winner and a line saying how the round ended.
    - Stats for both chefs: hearts left, dishes served, best streak, rush orders sent, ingredients grabbed, orders missed and rivals hit (the better value is highlighted).
    - The wins dashboard.

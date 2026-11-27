@@ -347,7 +347,7 @@ body[data-page="game"] .page { max-width: 1400px; padding: 8px 12px; }
     50% { box-shadow: inset 0 0 70px 14px rgba(255, 40, 30, 0.55); }
 }
 
-/* "K.O.!" / "TIME'S UP!" over the kitchen when the round ends */
+/* "YOU WIN!" / "YOU LOSE!" / "DRAW!" over the kitchen when the round ends */
 .countdown.banner { background: rgba(0, 0, 0, 0.45); }
 .countdown.banner #count-num { font-size: clamp(1.6rem, 5vw, 3.2rem); color: #fff; text-shadow: 5px 5px 0 var(--red), 9px 9px 0 var(--ink); }
 

@@ -332,8 +332,8 @@ $(function () {
         return 1 + 0.08 * Math.floor(elapsed / config.settings.paceEvery);
     };
 
-    const BANNERS = { ko: "K.O.!", "double-ko": "DOUBLE K.O.!", time: "TIME'S UP!", sudden: "SERVED!",
-        "overtime-draw": "DRAW!", forfeit: "FORFEIT!" };
+    // The banner only says how it ended for me; the game over page then explains why (K.O., time up, ...)
+    const resultText = (s) => (s.winner === -1 ? "DRAW!" : (s.winner === me ? "YOU WIN!" : "YOU LOSE!"));
 
     Socket.on("state", function (s) {
         if (me === null || !renderer) return;
@@ -364,7 +364,7 @@ $(function () {
         if (s.phase === "over" && prevPhase !== "over") {
             Sound.stopMusic();
             Sound.play(s.winner === me ? "win" : "lose");
-            HUD.showBanner(BANNERS[s.endReason] || "GAME OVER");      // 2 s to take in how it ended
+            HUD.showBanner(resultText(s));                              // 2 s over the kitchen, then the game over page
             setTimeout(function () { if (state === s) UI.showOver(s, me); }, 2000);
         }
 

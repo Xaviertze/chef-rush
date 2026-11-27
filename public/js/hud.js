@@ -157,7 +157,7 @@ const HUD = (function () {
     };
     const hideCount = () => $("#countdown").addClass("hidden").removeClass("banner");
 
-    // Big banner over the kitchen when the round ends ("K.O.!", "TIME'S UP!"), before the game over page
+    // Big banner over the kitchen when the round ends ("YOU WIN!", "YOU LOSE!", "DRAW!"), before the game over page
     const showBanner = function (label) {
         $("#countdown").removeClass("hidden").addClass("banner");
         $("#low-hearts").addClass("hidden");
