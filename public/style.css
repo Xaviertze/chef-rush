@@ -289,7 +289,8 @@ body[data-page="game"] .page { max-width: 1400px; padding: 8px 12px; }
 @keyframes blink { 50% { opacity: 0.35; } }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes count-pop { 0% { transform: scale(2.4); opacity: 0; } 30% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.9; } }
+/* fully visible from the first frame, so the number shows together with its beep (it used to fade in over ~0.3 s) */
+@keyframes count-pop { 0% { transform: scale(1.6); opacity: 1; } 25% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.9; } }
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.4); color: var(--good); } 100% { transform: scale(1); } }
 @keyframes shake {
     0%, 100% { transform: translate(0, 0); }
