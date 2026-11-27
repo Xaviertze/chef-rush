@@ -39,11 +39,24 @@ const Sound = (function () {
         if (el && el.playbackRate !== rate) el.playbackRate = rate;
     };
 
+    // Many sound cards and Bluetooth headphones switch off when nothing plays and need a second or two to wake
+    // up, so the first sounds of a page (the countdown beeps) were lost. A silent loop from the waiting room
+    // until the round is over keeps the audio output awake.
+    let awake = false;
+    const keepAwake = function (on) {
+        const el = element("wake");
+        awake = on;
+        if (!el) return;
+        if (on && !muted) el.play().catch(() => { /* not allowed yet: tried again on the next click */ });
+        else el.pause();
+    };
+
     const setMuted = function (on) {
         muted = on;
         try { localStorage.setItem("chefwars-muted", on ? "1" : "0"); } catch (e) { /* ignore */ }
         const music = element("music");
         if (music && on) music.pause();
+        if (on) { const wake = element("wake"); if (wake) wake.pause(); } else if (awake) keepAwake(true);
         $("#mute-btn").text(on ? "🔇" : "🔊").attr("title", on ? "Sound off (click to turn on)" : "Sound on (click to mute)");
     };
 
@@ -56,5 +69,5 @@ const Sound = (function () {
         });
     };
 
-    return { init, play, startMusic, stopMusic, setMusicRate, isMuted: () => muted };
+    return { init, play, startMusic, stopMusic, setMusicRate, keepAwake, isMuted: () => muted };
 })();

@@ -110,3 +110,6 @@ const music = function () {
 
 Object.keys(SOUNDS).forEach((name) => writeWav(name, SOUNDS[name]()));
 writeWav("music", music());
+// Keeps the computer's audio output awake from the waiting room on (see Sound.keepAwake): 1 s of a hiss
+// far too quiet to hear, looped
+writeWav("wake", tone({ from: 1000, dur: 1, wave: "noise", vol: 0.0001, attack: 0, release: 0 }));

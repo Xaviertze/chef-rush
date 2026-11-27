@@ -86,6 +86,7 @@ $(function () {
     });
 
     $("#signout-btn").on("click", function () {
+        stopGame();                                 // signing out mid-game: stop the music and the controls too
         Socket.disconnect();
         Auth.signout().then(function () {
             UI.setUser(null);
@@ -124,6 +125,7 @@ $(function () {
 
     $("#ready-btn").on("click", function () {
         if (!state) return;
+        Sound.keepAwake(true);                      // a click is always allowed to start sound
         Socket.ready(!state.ready[me]);
     });
 
@@ -181,6 +183,7 @@ $(function () {
         const myName = Auth.getUser().name;
         const names = me === 0 ? [myName, data.opponent] : [data.opponent, myName];
         UI.showRoom(myName, data.opponent);
+        Sound.keepAwake(true);                      // wake the audio output now, so the countdown beeps aren't lost
         HUD.init(data.config, me, names);
         recipeNames = {};
         Object.keys(data.config.recipes).forEach((k) => { recipeNames[k] = data.config.recipes[k].label; });
@@ -212,6 +215,7 @@ $(function () {
 
     const stopGame = function () {
         Sound.stopMusic();
+        Sound.keepAwake(false);
         Input.setEnabled(false);
         me = null;
         state = null;
@@ -365,7 +369,7 @@ $(function () {
             Sound.stopMusic();
             Sound.play(s.winner === me ? "win" : "lose");
             HUD.showBanner(resultText(s));                              // 2 s over the kitchen, then the game over page
-            setTimeout(function () { if (state === s) UI.showOver(s, me); }, 2000);
+            setTimeout(function () { if (state === s) { UI.showOver(s, me); Sound.keepAwake(false); } }, 2000);
         }
 
         Input.setEnabled(s.phase === "playing");
